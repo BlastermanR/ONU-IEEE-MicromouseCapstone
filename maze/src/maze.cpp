@@ -50,12 +50,14 @@ void Maze::resetMaze()
 
 // NAVIGATION FUNCTIONS
 // Get cell information
+/*
 const Cell& Maze::getCell(int x, int y) const 
 {
     Cell null;
     if (isValidCoordinate(x, y)) {return mazeLayout[x][y];}
     else {return null;}
 }
+*/
 
 // Check exploration status
 bool Maze::isExplored(int x, int y) const 
@@ -90,15 +92,16 @@ void Maze::markAsExplored(int x, int y)
 {
     if (isValidCoordinate(x, y)) 
     {
-            // TODO: Complete
+        // TODO: Complete
     }
 }
 
 // UTILITY FUNCTIONS
 // Check if coordinates are valid
 bool Maze::isValidCoordinate(int x, int y) const 
-{
-
+{  
+    // TODO: Finish
+    return true;
 }
 
 // Return a list of adjacent coordinates
@@ -113,4 +116,5 @@ std::vector<std::pair<int, int>> Maze::getAdjacentCells(int x, int y) const
     else {cells.push_back(std::pair<int, int>(-1, -1));}
     if(isValidCoordinate(x - 1, y)) {cells.push_back(std::pair<int, int>(x - 1, y));}
     else {cells.push_back(std::pair<int, int>(-1, -1));}
+    return cells;
 }

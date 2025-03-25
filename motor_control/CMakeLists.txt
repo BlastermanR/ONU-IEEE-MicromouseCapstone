@@ -16,4 +16,5 @@ target_link_libraries(motor_control PRIVATE
     hardware_pwm
     platform
     shared_data
+    maze
 )
