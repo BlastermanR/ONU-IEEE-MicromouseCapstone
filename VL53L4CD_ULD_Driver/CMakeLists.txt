@@ -9,5 +9,5 @@ target_include_directories(VL53L4CD_Driver PUBLIC
 )
 
 target_link_libraries(VL53L4CD_Driver PRIVATE
-    Platform
+    platform
 )
