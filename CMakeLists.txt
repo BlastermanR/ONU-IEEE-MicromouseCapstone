@@ -1,14 +1,13 @@
-# Generated Cmake Pico project file
+# ONU IEEE Micromouse Code
+# == INITIALIZATION ===================================================================
 
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.20)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# Initialise pico_sdk from installed location
-# (note this can come from environment, CMake cache etc)
-
+# VSCode Pico Extension Compatability.
 # == DO NOT EDIT THE FOLLOWING LINES for the Raspberry Pi Pico VS Code Extension to work ==
 if(WIN32)
     set(USERHOME $ENV{USERPROFILE})
@@ -28,25 +27,37 @@ set(PICO_BOARD pico2 CACHE STRING "Board type")
 # Pull in Raspberry Pi Pico SDK (must be before project)
 include(pico_sdk_import.cmake)
 
+# == PROJECT DEFINITION ==============================================================
 project(ONU_IEEE_Micromouse C CXX ASM)
+# DEFINE BUILD OPTIONS
+option(ENABLE_LOGGING "Enable logging in the project" OFF)
+option(ENABLE_DEBUG "Use fast math optimizations" OFF)
+option(RUN_TESTS "Enable logging in the project" OFF)
 
 # Initialise the Raspberry Pi Pico SDK
 pico_sdk_init()
 
-# Add executable. Default name is the project name, version 0.1
+# Add executable.
 add_executable(ONU_IEEE_Micromouse 
-    # Add main file
     src/ONU_IEEE_Micromouse.cpp
-
-    tests/sensorTests/basicSensorTest.cpp
+    src/control_process.cpp
+    src/gpio.cpp
+    src/robot.cpp
 )
 
 pico_set_program_name(ONU_IEEE_Micromouse "ONU_IEEE_Micromouse")
 pico_set_program_version(ONU_IEEE_Micromouse "0.1")
 
+# Disable conflicting functionality
 # Modify the below lines to enable/disable output over UART/USB
 pico_enable_stdio_uart(ONU_IEEE_Micromouse 0)
-pico_enable_stdio_usb(ONU_IEEE_Micromouse 1)
+
+# Build for Debug
+if (ENABLE_DEBUG)
+    pico_enable_stdio_usb(ONU_IEEE_Micromouse 1) # Enable USB Log if DEBUG Enabled
+else()
+    pico_enable_stdio_usb(ONU_IEEE_Micromouse 0)
+endif()
 
 # Add the standard library to the build
 target_link_libraries(ONU_IEEE_Micromouse
@@ -55,24 +66,34 @@ target_link_libraries(ONU_IEEE_Micromouse
 
 # Add the standard include files to the build
 target_include_directories(ONU_IEEE_Micromouse PUBLIC
-    # Add generic headerfiles
-    #${CMAKE_CURRENT_LIST_DIR}/include
-
-    ${CMAKE_CURRENT_LIST_DIR}/tests/sensorTests/
+    ${CMAKE_CURRENT_LIST_DIR}/include
 )
 
-
-# Add subdirectories for platform and sensor driver
+# Add necessary subdirectories (Libraries)
 add_subdirectory(platform)
 add_subdirectory(VL53L4CD_ULD_Driver)
+add_subdirectory(interrupts)
+add_subdirectory(shared_data)
+add_subdirectory(state_machine)
+add_subdirectory(motor_control)
+add_subdirectory(maze)
 
-
-# Add any user requested libraries
+# Add requested libraries
 target_link_libraries(ONU_IEEE_Micromouse 
     hardware_i2c
+    hardware_irq
+    hardware_timer
     hardware_gpio
-    Platform
+    hardware_pwm
+    pico_multicore 
+    pico_util
+    platform
+    interrupts
     VL53L4CD_Driver
+    shared_data
+    state_machine
+    motor_control
+    maze
 )
 
 pico_add_extra_outputs(ONU_IEEE_Micromouse)

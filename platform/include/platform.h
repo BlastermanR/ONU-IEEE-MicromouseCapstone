@@ -1,9 +1,9 @@
 /**
  * @file platform.h
- * @author your name (you@domain.com)
+ * @author Ryan Massie
  * @brief 
  * @version 0.1
- * @date 2024-11-21
+ * @date 2024-2-28
  * 
  * @copyright Copyright (c) 2024
  * 
@@ -37,7 +37,7 @@ typedef uint8_t VL53L4CD_Error;
  * with I2C Fast Mode Plus (up to 1MHz). Otherwise, default max value is 400kHz.
  */
 
-#define VL53L4CD_I2C_FAST_MODE_PLUS
+//S#define VL53L4CD_I2C_FAST_MODE_PLUS
 
 
 /**

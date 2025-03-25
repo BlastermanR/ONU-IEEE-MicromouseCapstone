@@ -1,14 +1,13 @@
 /**
  * @file platform.h
- * @author your name (you@domain.com)
+ * @author Ryan Massie
  * @brief 
  * @version 0.1
- * @date 2024-11-21
+ * @date 2024-2-28
  * 
  * @copyright Copyright (c) 2024
  * 
  */
-
 
 #include "platform.h"
 #include "hardware/i2c.h"
