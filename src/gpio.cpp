@@ -183,6 +183,7 @@ int read_VL53L4CD(uint8_t address, uint16_t &data)
     int status = VL53L4CD_GetResult(address, results);
     status |= VL53L4CD_ClearInterrupt(address);
     data = results->distance_mm;
+    if (data > MAX_IR_RANGE_MM) {data = MAX_IR_RANGE_MM;}
     delete(results);
     return status;
 }
