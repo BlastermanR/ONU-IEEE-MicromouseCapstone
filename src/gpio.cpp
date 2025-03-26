@@ -177,6 +177,16 @@ bool is_i2c_valid(uint8_t address)
     else { return false; }
 }
 
+int read_VL53L4CD(uint8_t address, uint16_t &data)
+{
+    VL53L4CD_ResultsData_t* results;
+    int status = VL53L4CD_GetResult(address, results);
+    status |= VL53L4CD_ClearInterrupt(address);
+    data = results->distance_mm;
+    delete(results);
+    return status;
+}
+
 bool VL53L4CD_setup()
 {
     // Initialize Sensors

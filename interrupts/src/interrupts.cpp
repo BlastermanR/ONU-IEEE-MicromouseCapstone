@@ -1,24 +1,24 @@
 #include <interrupts.h>
 
 // Flags
-volatile bool ir_sensor_ready_flag_1 = false;
-volatile bool ir_sensor_ready_flag_2 = false;
-volatile bool ir_sensor_ready_flag_3 = false;
-volatile bool gyro_sensor_ready_flag = false;
-volatile bool sw1_on_flag = false;
-volatile bool sw2_on_flag = false;
-volatile bool sw3_on_flag = false;
-volatile bool motor_correct_flag = false;
+bool ir_sensor_ready_flag_1 = false;
+bool ir_sensor_ready_flag_2 = false;
+bool ir_sensor_ready_flag_3 = false;
+bool gyro_sensor_ready_flag = false;
+bool sw1_on_flag = false;
+bool sw2_on_flag = false;
+bool sw3_on_flag = false;
+bool motor_correct_flag = false;
 
 // Timers
 struct repeating_timer correction_timer;
 struct repeating_timer gyro_timer;
 
 // Encoder PWM data
-volatile uint64_t rotation_count[NUM_PWM_PINS] = {0};
-volatile uint32_t pwm_period[NUM_PWM_PINS] = {0};
-volatile uint32_t last_wrap_time[NUM_PWM_PINS] = {0};
-volatile uint pwm_slice_num[NUM_PWM_PINS] = {0}; 
+uint64_t rotation_count[NUM_PWM_PINS] = {0};
+uint32_t pwm_period[NUM_PWM_PINS] = {0};
+uint32_t last_wrap_time[NUM_PWM_PINS] = {0};
+uint pwm_slice_num[NUM_PWM_PINS] = {0}; 
 
 // Interrupt Handlers
 void ir_sensor_irq_handler(uint gpio, uint32_t events) 
@@ -42,7 +42,7 @@ bool gyro_sensor_irq_handler(struct repeating_timer *t)
 // Switch Inturrupt Toggle
 void switch_irq_handler(uint gpio, uint32_t events)
 {
-    if (events = GPIO_IRQ_EDGE_RISE) 
+    if (events = GPIO_IRQ_LEVEL_HIGH) 
     {
         switch(gpio) 
         {
@@ -52,7 +52,7 @@ void switch_irq_handler(uint gpio, uint32_t events)
             default:  {}
         }
     }
-    else if (events = GPIO_IRQ_EDGE_FALL)
+    else if (events = GPIO_IRQ_LEVEL_LOW)
     {
         switch(gpio) 
         {
@@ -123,9 +123,9 @@ void setup_interrupts() {
     add_repeating_timer_ms(CORRECTION_TIMER_MS, correction_irq_handler, NULL, &correction_timer);
 
     // Enable Switch Inturrupts
-    gpio_set_irq_enabled_with_callback(SW1, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &switch_irq_handler);
-    gpio_set_irq_enabled_with_callback(SW2, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &switch_irq_handler);
-    gpio_set_irq_enabled_with_callback(SW3, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &switch_irq_handler);
+    gpio_set_irq_enabled_with_callback(SW1, GPIO_IRQ_LEVEL_HIGH | GPIO_IRQ_LEVEL_LOW, true, &switch_irq_handler);
+    gpio_set_irq_enabled_with_callback(SW2, GPIO_IRQ_LEVEL_HIGH | GPIO_IRQ_LEVEL_LOW, true, &switch_irq_handler);
+    gpio_set_irq_enabled_with_callback(SW3, GPIO_IRQ_LEVEL_HIGH | GPIO_IRQ_LEVEL_LOW, true, &switch_irq_handler);
 
     // Setup PWM Inturrupts
     pwm_capture_setup();

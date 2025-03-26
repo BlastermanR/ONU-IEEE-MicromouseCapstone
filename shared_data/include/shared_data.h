@@ -14,8 +14,8 @@ private:
 
 public:
     SharedDataMutex(T data) {
-        mutex_init(&data_mutex);
         this->data = data;
+        mutex_init(&data_mutex);
     }
 
     // Standard read with mutex protection
@@ -51,7 +51,7 @@ struct GyroReadingMutex
 
     void get_lock() {mutex_enter_blocking(&data_mutex);}
 
-    void release_lock() {mutex_enter_blocking(&data_mutex);}
+    void release_lock() {mutex_exit(&data_mutex);}
 
     void write_data(uint8_t (&buffer)[14]) {
         get_lock();

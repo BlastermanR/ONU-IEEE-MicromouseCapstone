@@ -107,6 +107,7 @@ bool Maze::isValidCoordinate(int x, int y) const
 // Return a list of adjacent coordinates
 std::vector<std::pair<int, int>> Maze::getAdjacentCells(int x, int y) const 
 {
+    // TODO: Finish
     std::vector<std::pair<int, int>> cells;
     if(isValidCoordinate(x, y + 1)) {cells.push_back(std::pair<int, int>(x, y + 1));}
     else {cells.push_back(std::pair<int, int>(-1, -1));}

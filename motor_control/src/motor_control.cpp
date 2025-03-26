@@ -1,23 +1,42 @@
 #include<motor_control.h>
 
+// Local global variables for motor actions
+bool motor_action_in_progress = false;
+float left_motor_action_start_count;
+float right_motor_action_start_count;
+float target_left_motor_rotations;
+float target_right_motor_rotations;
+float temp_left_motor_set_speed;
+float temp_right_motor_set_speed;
+
+// PID coefficients (need tuning)
+const float Kp = 1.0;  // Proportional gain
+const float Ki = 0.1;  // Integral gain
+const float Kd = 0.05; // Derivative gain
+
+// PID variables
+float previous_error = 0.0;
+float integral = 0.0;
+
 // Calculate correction to ensure robot travels on straight path
 float compute_correction()
 {
-    // Correction to be applied to the robot
     float correction = 0.0;
 
-    // Gyro-based correction is calcualted by finding the horizonal
-    // degree acceleration and converting it to degrees.
+    // Step 1: Compute Error
+    // Gyro Data
     gyro_data.get_lock();
-    float gyro_error_deg = gyro_data.gz / 131.0;
+    float gyro_error_deg = gyro_data.gz / 131.0;  // Current gyro error
     gyro_data.release_lock();
-    correction += gyro_error_deg * GYRO_CORRECTION_WEIGHT;  // Small weight for gyro correction
 
-    // IR Sensor-based correction
-    float ir_correction = 0;
+    // IR Data
+
+    // TODO: alter control logic to handle non straight path lines / edge cases
     float left_perp  = left_IR_sensor.read() * 0.707;
     float right_perp = right_IR_sensor.read() * 0.707;
+    float ir_error;
 
+    // Straight Path IR Correction
     // If the measured perpendicular widths are greater than the maimum.
     // At least 1 sensor is looking at a gap on at least 1 side
     if (left_perp + right_perp + IR_PLACEMENT_WIDTH_MM > PATH_SIZE_MM)
@@ -26,22 +45,45 @@ float compute_correction()
         // it to calculate correction, else the robot can not use either and
         // must rely on the gyro to correct movement.
         float min_perp = std::min(left_perp, right_perp);
-        if (min_perp + IR_PLACEMENT_WIDTH_MM / 2 > PATH_SIZE_MM / 2)
+        if (min_perp + IR_PLACEMENT_WIDTH_MM / 2 > PATH_SIZE_MM / 2) // Ignore IR Correction
         {
-            ir_correction += 0;
+            ir_error = 0;
         }
-        else
+        else if (left_perp > right_perp) // Use right wall
         {
-            ir_correction += (min_perp - ((PATH_SIZE_MM - IR_PLACEMENT_WIDTH_MM) / 2));
+            ir_error = (min_perp - ((PATH_SIZE_MM - IR_PLACEMENT_WIDTH_MM) / 2));
         }
-    }    
+        else // Use left wall
+        {
+            ir_error = (((PATH_SIZE_MM - IR_PLACEMENT_WIDTH_MM) / 2) - min_perp);
+        }
+    }
     else
     {
-        ir_correction += (left_perp - right_perp);
+        ir_error = (left_perp - right_perp) / 2;
     }
 
-    // If not in deadband, correct
-    if (std::fabs(ir_correction) > CORRECTION_DEADBAND_MM) {correction += ir_correction * SENSOR_CORRECTION_WEIGHT;}
+    // Combine both errors (weighted sum)
+    float error = (gyro_error_deg * GYRO_CORRECTION_WEIGHT) + (ir_error * SENSOR_CORRECTION_WEIGHT); 
+
+    // Deadband
+    if (std::fabs(error) < CORRECTION_DEADBAND) {
+        error = 0;
+    }
+
+    // Step 2: Compute PID Terms
+    integral += error;                              // Accumulate error (I term)
+    // Clamp integral to prevent windup
+    float max_integral = 100.0;  // Adjust as needed
+    integral = std::clamp(integral, -max_integral, max_integral);
+
+    float derivative = (error - previous_error);    // Rate of change of error (D term)
+
+    // Step 3: Compute Final Correction
+    correction = (error * Kp) + (Ki * integral) + (Kd * derivative);
+    
+    // **Step 4: Save Previous Error for Next Iteration**
+    previous_error = error;
 
     return correction;
 }
@@ -88,4 +130,55 @@ void set_motor_speed(uint8_t MOTOR_ID, float speed)
         }
         default: {}
     };
+}
+
+void motor_action_tracking(bool &motor_correction, uint64_t total_left_rotation_count, uint64_t total_right_rotation_count)
+{
+    if (motor_action_in_progress)
+    {
+        // Calculate correction if needed
+        if (motor_correction)
+        {
+            // Find correction
+            float correction = compute_correction();
+
+            // Set motor
+            set_motor_speed(MOTOR_LEFT, temp_left_motor_set_speed - correction);
+            set_motor_speed(MOTOR_RIGHT, temp_right_motor_set_speed + correction);
+
+            // Reset flag
+            motor_correction = false;
+        }        
+        
+        // Check if target distance has been reached/exceeded
+        if (total_left_rotation_count > target_left_motor_rotations || total_right_rotation_count > temp_right_motor_set_speed) // Done
+        {
+            // Disable motors
+            set_motor_speed(MOTOR_LEFT, 0);
+            set_motor_speed(MOTOR_RIGHT, 0);
+            
+            // Set flags
+            motor_action_in_progress = false;
+            motor_action.write(false);
+        }
+    }   
+
+    // Start Motor if action flag in shared data is high and motor is not already running
+    else if (motor_action.read())
+    {
+        // Calculate Target final rotation count
+        target_left_motor_rotations = left_motor_rotation_count.read() + total_left_rotation_count;
+        target_right_motor_rotations = right_motor_rotation_count.read() + right_motor_action_start_count;
+
+        // Store set rotation speed factor locally
+        temp_left_motor_set_speed = left_motor_set_speed.read();
+        temp_right_motor_set_speed = right_motor_set_speed.read();
+
+        // Activate motors
+        set_motor_speed(MOTOR_LEFT, temp_left_motor_set_speed);
+        set_motor_speed(MOTOR_RIGHT, temp_right_motor_set_speed);
+        
+        // Set in progress flag
+        motor_action_in_progress = true;
+    }
 }
