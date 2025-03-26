@@ -21,9 +21,9 @@
 #define CORRECTION_DEADBAND 1.5
 
 // Correction PID coefficients
-//#define Kp = 1.0;  // Proportional gain
-//#define Ki = 0.1;  // Integral gain
-//#define Kd = 0.05; // Derivative gain
+#define Kp 1.0  // Proportional gain
+#define Ki 0.1  // Integral gain
+#define Kd 0.05 // Derivative gain
 
 // Implement PID for tracking correction needed
 // Needs to: 

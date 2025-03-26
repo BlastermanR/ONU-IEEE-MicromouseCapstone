@@ -9,11 +9,6 @@ float target_right_motor_rotations;
 float temp_left_motor_set_speed;
 float temp_right_motor_set_speed;
 
-// PID coefficients (need tuning)
-const float Kp = 1.0;  // Proportional gain
-const float Ki = 0.1;  // Integral gain
-const float Kd = 0.05; // Derivative gain
-
 // PID variables
 float previous_error = 0.0;
 float integral = 0.0;
@@ -80,7 +75,7 @@ float compute_correction()
     float derivative = (error - previous_error);    // Rate of change of error (D term)
 
     // Step 3: Compute Final Correction
-    correction = (error * Kp) + (Ki * integral) + (Kd * derivative);
+    correction = (Kp * error) + (Ki * integral) + (Kd * derivative);
     
     // **Step 4: Save Previous Error for Next Iteration**
     previous_error = error;
