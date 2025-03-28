@@ -31,6 +31,7 @@
 // 2. Compute PID Terms
 // 3. Compute Final Correction
 // 4. Save Previous Error for Next Iteration
+// Step 5: Clamp to scale useable by motor
 float compute_correction();
 
 // Set Motor Speed

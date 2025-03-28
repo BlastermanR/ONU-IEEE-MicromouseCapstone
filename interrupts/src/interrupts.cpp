@@ -80,6 +80,7 @@ void setup_interrupts() {
     init_quadrature_encoders();
 }
 
+// Determine if correction timer should run
 void set_correction_timer(bool run_timer)
 {
     static bool timer_running = false;
@@ -95,6 +96,7 @@ void set_correction_timer(bool run_timer)
     }
 }
 
+// Set correction flag in motor control
 bool correction_irq_handler(struct repeating_timer *t)
 {
     motor_correct_flag = true;
