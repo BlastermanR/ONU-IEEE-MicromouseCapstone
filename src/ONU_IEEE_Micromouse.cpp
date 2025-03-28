@@ -29,18 +29,6 @@
 #include <motor_control.h>
 #include <control_process.h>
 
-void calculate_motor_speeds()
-{
-    // Calculate Speed
-    // V = f(Hz) * 60 / N = 60 / period(s) * N
-    float speed_left_mms = 1000.0 / pwm_period[3] * (MM_TRAVELED_PER_ROTATION / ENCODER_NUM_LINES_ROTATION);
-    float speed_right_mms = 1000.0 / pwm_period[1] * (MM_TRAVELED_PER_ROTATION / ENCODER_NUM_LINES_ROTATION);
-
-    // Convert to milimeters per second and write to shared memory
-    left_motor_speed_mms.write(speed_left_mms);
-    right_motor_speed_mms.write(speed_right_mms);
-}
-
 // Process handles fast, time sensative operations such as interrupts
 int main()
 {
@@ -128,12 +116,13 @@ int main()
         else {sw3.write(false);}
 
         // Update motor speed/rotations/corrections
-        motor_action_tracking(motor_correct_flag, rotation_count[3], rotation_count[1]);
+        int64_t left_encoder_count, right_encoder_count;
+        update_encoder_count(left_encoder_count, right_encoder_count);
+        motor_action_tracking(motor_correct_flag, left_encoder_count, right_encoder_count);
 
         // Update encoder data in shared memory
-        left_motor_rotation_count.write(rotation_count[3]);
-        right_motor_rotation_count.write(rotation_count[1]);
-        calculate_motor_speeds();
+        left_encoder_rotation_demand.write(left_encoder_count);
+        right_encoder_rotation_demand.write(right_encoder_count);
 
         count++;
     }

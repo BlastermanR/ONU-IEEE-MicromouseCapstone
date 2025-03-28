@@ -85,6 +85,7 @@ target_link_libraries(ONU_IEEE_Micromouse
     hardware_timer
     hardware_gpio
     hardware_pwm
+    hardware_pio
     pico_multicore 
     pico_util
     platform

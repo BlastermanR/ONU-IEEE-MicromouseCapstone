@@ -81,8 +81,8 @@ extern GyroReadingMutex gyro_data;
 // Speed/Encoder Data
 extern SharedDataMutex<float> left_motor_speed_mms;
 extern SharedDataMutex<float> right_motor_speed_mms;
-extern SharedDataMutex<uint64_t> left_motor_rotation_count;
-extern SharedDataMutex<uint64_t> right_motor_rotation_count;
+extern SharedDataMutex<int64_t> left_encoder_rotation_demand; // In encoder Lines (4096 per motor rotation)
+extern SharedDataMutex<int64_t> right_encoder_rotation_demand;
 
 // Motor
 extern SharedDataMutex<bool> motor_action;

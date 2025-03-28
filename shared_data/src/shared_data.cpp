@@ -16,8 +16,8 @@ GyroReadingMutex gyro_data;
 // Speed/Encoder Data
 SharedDataMutex<float> left_motor_speed_mms(0);
 SharedDataMutex<float> right_motor_speed_mms(0);
-SharedDataMutex<uint64_t> left_motor_rotation_count(0);
-SharedDataMutex<uint64_t> right_motor_rotation_count(0);
+SharedDataMutex<int64_t> left_encoder_rotation_demand(0);
+SharedDataMutex<int64_t> right_encoder_rotation_demand(0);
 
 // Motor Control
 SharedDataMutex<bool> motor_action(false);

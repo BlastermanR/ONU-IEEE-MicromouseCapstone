@@ -4,8 +4,8 @@
 bool motor_action_in_progress = false;
 float left_motor_action_start_count;
 float right_motor_action_start_count;
-float target_left_motor_rotations;
-float target_right_motor_rotations;
+float target_left_motor_rotation_steps;
+float target_right_motor_rotation_steps;
 float temp_left_motor_set_speed;
 float temp_right_motor_set_speed;
 
@@ -77,10 +77,14 @@ float compute_correction()
     // Step 3: Compute Final Correction
     correction = (Kp * error) + (Ki * integral) + (Kd * derivative);
     
-    // **Step 4: Save Previous Error for Next Iteration**
+    // Step 4: Save Previous Error for Next Iteration
     previous_error = error;
 
-    return correction;
+    // Step 5: Clamp to scale useable by motor
+    // Convert mm-based correction into a usable motor speed adjustment (0 to 1 scale)
+    const float max_error_mm = (PATH_SIZE_MM) / 2 - IR_PLACEMENT_WIDTH_MM; // Assume max error is half the path width - width of sensors
+    float correction_speed = std::clamp(correction / max_error_mm, -1.0f, 1.0f);
+    return correction_speed;
 }
 
 // Set motor speed given a (-1:1) input
@@ -127,26 +131,14 @@ void set_motor_speed(uint8_t MOTOR_ID, float speed)
     };
 }
 
-void motor_action_tracking(bool &motor_correction, uint64_t total_left_rotation_count, uint64_t total_right_rotation_count)
+void motor_action_tracking(bool &motor_correction, int64_t total_left_encoder_count, int64_t total_right_encoder_count)
 {
     if (motor_action_in_progress)
-    {
-        // Calculate correction if needed
-        if (motor_correction)
-        {
-            // Find correction
-            float correction = compute_correction();
-
-            // Set motor
-            set_motor_speed(MOTOR_LEFT, temp_left_motor_set_speed - correction);
-            set_motor_speed(MOTOR_RIGHT, temp_right_motor_set_speed + correction);
-
-            // Reset flag
-            motor_correction = false;
-        }        
-        
-        // Check if target distance has been reached/exceeded
-        if (total_left_rotation_count > target_left_motor_rotations || total_right_rotation_count > temp_right_motor_set_speed) // Done
+    {       
+        if (((total_left_encoder_count >= target_left_motor_rotation_steps && target_left_motor_rotation_steps > 0) || 
+             (total_left_encoder_count <= target_left_motor_rotation_steps && target_left_motor_rotation_steps < 0)) &&
+            ((total_right_encoder_count >= target_right_motor_rotation_steps && target_right_motor_rotation_steps > 0) || 
+             (total_right_encoder_count <= target_right_motor_rotation_steps && target_right_motor_rotation_steps < 0)))
         {
             // Disable motors
             set_motor_speed(MOTOR_LEFT, 0);
@@ -156,14 +148,33 @@ void motor_action_tracking(bool &motor_correction, uint64_t total_left_rotation_
             motor_action_in_progress = false;
             motor_action.write(false);
         }
-    }   
 
+        // Calculate correction if needed
+        else if (motor_correction)
+        {
+            // Find correction
+            float correction = compute_correction();
+
+            // Set motor
+            set_motor_speed(MOTOR_LEFT, temp_left_motor_set_speed - correction);
+            set_motor_speed(MOTOR_RIGHT, temp_right_motor_set_speed + correction);
+
+            // Adjust target rotations based on correction over time
+            float scaling_factor = 0.1;  // Adjust this based on testing
+            target_left_motor_rotation_steps += correction * scaling_factor * abs(target_left_motor_rotation_steps - total_left_encoder_count);
+            target_right_motor_rotation_steps -= correction * scaling_factor * abs(target_right_motor_rotation_steps - total_right_encoder_count);
+
+            // Reset flag
+            motor_correction = false;
+        }  
+    }   
+    
     // Start Motor if action flag in shared data is high and motor is not already running
     else if (motor_action.read())
     {
-        // Calculate Target final rotation count
-        target_left_motor_rotations = left_motor_rotation_count.read() + total_left_rotation_count;
-        target_right_motor_rotations = right_motor_rotation_count.read() + right_motor_action_start_count;
+        // Store final rotation count
+        target_left_motor_rotation_steps = total_left_encoder_count + left_encoder_rotation_demand.read();
+        target_right_motor_rotation_steps = total_right_encoder_count + right_encoder_rotation_demand.read();
 
         // Store set rotation speed factor locally
         temp_left_motor_set_speed = left_motor_set_speed.read();

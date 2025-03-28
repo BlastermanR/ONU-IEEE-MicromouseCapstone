@@ -6,12 +6,14 @@
 #include <pico/time.h>
 #include <hardware/clocks.h>
 #include <hardware/pwm.h>
+#include <hardware/pio.h>
 #include <hardware/irq.h>
 #include <hardware/timer.h>
+#include <quadrature_encoder.h>
 
 // Global Declarations
 #define GYRO_TIMER_MS 10
-#define CORRECTION_TIMER_MS 25
+#define CORRECTION_TIMER_MS 15
 
 // Flags
 extern bool ir_sensor_ready_flag_1;
@@ -28,10 +30,7 @@ extern struct repeating_timer correction_timer;
 extern struct repeating_timer gyro_timer;
 
 // Encoder PWM data
-extern uint64_t rotation_count[NUM_PWM_PINS]; // Store total # of rotations
-extern uint32_t pwm_period[NUM_PWM_PINS]; // Store period for each pin
-extern uint32_t last_wrap_time[NUM_PWM_PINS]; // Store last wrap time for each PWM pin
-extern uint pwm_slice_num[NUM_PWM_PINS]; // Store pwm slice number
+extern int64_t rotation_count[2]; // Store total # of rotations
 
 // Interrupt Handlers
 void ir_sensor_irq_handler(uint gpio, uint32_t events);
