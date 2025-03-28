@@ -146,12 +146,11 @@ void motor_action_tracking(bool &motor_correction, int64_t total_left_encoder_co
             
             // Set flags
             motor_action_in_progress = false;
-            motor_correction = false;
             motor_action.write(false);
         }
 
         // Calculate correction if needed
-        else if (motor_correction && calculate_corrections.read())
+        else if (motor_correction)
         {
             // Find correction
             float correction = compute_correction();

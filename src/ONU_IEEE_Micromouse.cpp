@@ -116,6 +116,7 @@ int main()
         else {sw3.write(false);}
 
         // Update motor speed/rotations/corrections
+        set_correction_timer(calculate_corrections.read());
         int64_t left_encoder_count, right_encoder_count;
         update_encoder_count(left_encoder_count, right_encoder_count);
         motor_action_tracking(motor_correct_flag, left_encoder_count, right_encoder_count);

@@ -70,7 +70,6 @@ void setup_interrupts() {
 
     // Enable Gyro Sensor Inturrupts
     add_repeating_timer_ms(GYRO_TIMER_MS, gyro_sensor_irq_handler, nullptr, &gyro_timer);
-    add_repeating_timer_ms(CORRECTION_TIMER_MS, correction_irq_handler, NULL, &correction_timer);
 
     // Enable Switch Inturrupts
     gpio_set_irq_enabled_with_callback(SW1, GPIO_IRQ_LEVEL_HIGH | GPIO_IRQ_LEVEL_LOW, true, &switch_irq_handler);
@@ -79,6 +78,21 @@ void setup_interrupts() {
 
     // Setup PWM Inturrupts
     init_quadrature_encoders();
+}
+
+void set_correction_timer(bool run_timer)
+{
+    static bool timer_running = false;
+    if (run_timer && !timer_running)
+    {
+        add_repeating_timer_ms(CORRECTION_TIMER_MS, correction_irq_handler, NULL, &correction_timer);
+        timer_running = true;
+    }
+    else if (timer_running)
+    {
+        cancel_repeating_timer(&correction_timer);
+        timer_running = false;
+    }
 }
 
 bool correction_irq_handler(struct repeating_timer *t)

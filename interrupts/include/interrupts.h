@@ -51,6 +51,9 @@ void pwm_capture_setup();
 void setup_interrupts();
 
 // Motor Functions
+// Set correction timer based on value in shared memory
+void set_correction_timer(bool run_timer);
+
 // Handler for calculating correction
 bool correction_irq_handler(struct repeating_timer *t);
 

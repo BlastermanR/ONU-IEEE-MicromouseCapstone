@@ -68,7 +68,6 @@ struct GyroReadingMutex
 // Define Globals
 // State/Messages
 extern SharedDataMutex<bool> control_process_exit_signal; // Signal to main process to end
-extern SharedDataMutex<bool> calculate_corrections; // Signal for main process to correct motor movement durring linear travel
 // Switches
 extern SharedDataMutex<bool> sw1;
 extern SharedDataMutex<bool> sw2;
@@ -81,9 +80,9 @@ extern GyroReadingMutex gyro_data;
 // Encoder Data
 extern SharedDataMutex<int64_t> left_encoder_rotation_demand; // In encoder Lines (4096 per motor rotation)
 extern SharedDataMutex<int64_t> right_encoder_rotation_demand;
-
 // Motor
 extern SharedDataMutex<bool> motor_action;
+extern SharedDataMutex<bool> calculate_corrections; // Signal for main process to correct motor movement durring linear travel
 extern SharedDataMutex<float> left_motor_set_speed; // Speed factor (-1 -> 1)
 extern SharedDataMutex<float> right_motor_set_speed;
 extern SharedDataMutex<float> left_motor_rotations; // total # of encoder lines
