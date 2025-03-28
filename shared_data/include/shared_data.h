@@ -14,8 +14,8 @@ private:
 
 public:
     SharedDataMutex(T data) {
-        mutex_init(&data_mutex);
         this->data = data;
+        mutex_init(&data_mutex);
     }
 
     // Standard read with mutex protection
@@ -51,7 +51,7 @@ struct GyroReadingMutex
 
     void get_lock() {mutex_enter_blocking(&data_mutex);}
 
-    void release_lock() {mutex_enter_blocking(&data_mutex);}
+    void release_lock() {mutex_exit(&data_mutex);}
 
     void write_data(uint8_t (&buffer)[14]) {
         get_lock();
@@ -67,8 +67,7 @@ struct GyroReadingMutex
 
 // Define Globals
 // State/Messages
-extern SharedDataMutex<bool> control_process_exit_signal;
-extern SharedDataMutex<bool> calculate_corrections;
+extern SharedDataMutex<bool> control_process_exit_signal; // Signal to main process to end
 // Switches
 extern SharedDataMutex<bool> sw1;
 extern SharedDataMutex<bool> sw2;
@@ -78,17 +77,15 @@ extern SharedDataMutex<uint16_t> left_IR_sensor;
 extern SharedDataMutex<uint16_t> middle_IR_sensor;
 extern SharedDataMutex<uint16_t> right_IR_sensor;
 extern GyroReadingMutex gyro_data;
-// Speed/Encoder Data
-extern SharedDataMutex<float> left_motor_speed_mms;
-extern SharedDataMutex<float> right_motor_speed_mms;
-extern SharedDataMutex<uint64_t> left_motor_rotation_count;
-extern SharedDataMutex<uint64_t> right_motor_rotation_count;
-
+// Encoder Data
+extern SharedDataMutex<int64_t> left_encoder_rotation_demand; // In encoder Lines (4096 per motor rotation)
+extern SharedDataMutex<int64_t> right_encoder_rotation_demand;
 // Motor
 extern SharedDataMutex<bool> motor_action;
-extern SharedDataMutex<float> left_motor_set_speed;
+extern SharedDataMutex<bool> calculate_corrections; // Signal for main process to correct motor movement durring linear travel
+extern SharedDataMutex<float> left_motor_set_speed; // Speed factor (-1 -> 1)
 extern SharedDataMutex<float> right_motor_set_speed;
-extern SharedDataMutex<float> left_motor_rotations;
+extern SharedDataMutex<float> left_motor_rotations; // total # of encoder lines
 extern SharedDataMutex<float> right_motor_rotations;
 
 #endif

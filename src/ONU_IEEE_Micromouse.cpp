@@ -29,18 +29,6 @@
 #include <motor_control.h>
 #include <control_process.h>
 
-void calculate_motor_speeds()
-{
-    // Calculate Speed
-    // V = f(Hz) * 60 / N = 60 / period(s) * N
-    float speed_left_mms = 1000.0 / pwm_period[3] * (MM_TRAVELED_PER_ROTATION / ENCODER_NUM_LINES_ROTATION);
-    float speed_right_mms = 1000.0 / pwm_period[1] * (MM_TRAVELED_PER_ROTATION / ENCODER_NUM_LINES_ROTATION);
-
-    // Convert to milimeters per second and write to shared memory
-    left_motor_speed_mms.write(speed_left_mms);
-    right_motor_speed_mms.write(speed_right_mms);
-}
-
 // Process handles fast, time sensative operations such as interrupts
 int main()
 {
@@ -75,48 +63,35 @@ int main()
 
     // Loop
     printf("Core 1: Entering Time Sensitive Mode, Printing Limited\n");
-    // Vars
+
+    // Status Vars
     int status = 0;
     uint64_t count = 0;
-    bool motor_action_in_progress = false;
-    float left_motor_action_start_count;
-    float right_motor_action_start_count;
+
     while(!status || control_process_exit_signal.read()) 
     {
         // Interrupt Flag Checks
         if(ir_sensor_ready_flag_1)
         {
-            // I2C Read
-            VL53L4CD_ResultsData_t* results;
-            status = VL53L4CD_GetResult(VL53L4CD_1, results);
-            // Write to shared data
-            left_IR_sensor.write(results->distance_mm);
-            delete(results);
-            status = VL53L4CD_ClearInterrupt(VL53L4CD_1);
+            uint16_t result;
+            status |= read_VL53L4CD(VL53L4CD_1, result);
+            left_IR_sensor.write(result);
             ir_sensor_ready_flag_1 = false;
         }
 
         if(ir_sensor_ready_flag_2)
         {
-            // I2C Read
-            VL53L4CD_ResultsData_t* results;
-            status = VL53L4CD_GetResult(VL53L4CD_1, results);
-            // Write to shared data
-            middle_IR_sensor.write(results->distance_mm);
-            delete(results);
-            status = VL53L4CD_ClearInterrupt(VL53L4CD_2);
+            uint16_t result;
+            status |= read_VL53L4CD(VL53L4CD_2, result);
+            left_IR_sensor.write(result);
             ir_sensor_ready_flag_2 = false;
         }
 
         if(ir_sensor_ready_flag_3)
         {
-            // I2C Read
-            VL53L4CD_ResultsData_t* results;
-            status = VL53L4CD_GetResult(VL53L4CD_1, results);
-            // Write to shared data
-            right_IR_sensor.write(results->distance_mm);
-            delete(results);
-            status = VL53L4CD_ClearInterrupt(VL53L4CD_3);
+            uint16_t result;
+            status |= read_VL53L4CD(VL53L4CD_3, result);
+            left_IR_sensor.write(result);
             ir_sensor_ready_flag_3 = false;
         }
 
@@ -141,54 +116,14 @@ int main()
         else {sw3.write(false);}
 
         // Update motor speed/rotations/corrections
-        if (motor_action_in_progress)
-        {
-            // Calculate correction if needed
-            if (motor_correct_flag)
-            {
-                float correction = compute_correction();
-                // Set motor
-                set_motor_speed(MOTOR_LEFT, left_motor_set_speed.read() - correction);
-                set_motor_speed(MOTOR_RIGHT, right_motor_set_speed.read() + correction);
-
-                // Reset flag
-                motor_correct_flag = false;
-            }        
-            
-            // Check progress
-            // Left motor
-            float left_count = rotation_count[3] - left_motor_action_start_count + ROTATION_OFFSET;
-            float right_count = rotation_count[1] - right_motor_action_start_count + ROTATION_OFFSET;    
-            if (left_count > left_motor_rotations.read() || right_count > right_motor_rotations.read()) // Done
-            {
-                // Disable motors
-                set_motor_speed(MOTOR_LEFT, 0);
-                set_motor_speed(MOTOR_RIGHT, 0);
-                
-                // Set flags
-                motor_action_in_progress = false;
-                motor_action.write(false);
-            }
-        }   
-        // Start Motor
-        else if (motor_action.read())
-        {
-            // Log starting position
-            left_motor_action_start_count = rotation_count[3];
-            right_motor_action_start_count = rotation_count[1];
-
-            // Set motors
-            set_motor_speed(MOTOR_LEFT, left_motor_set_speed.read());
-            set_motor_speed(MOTOR_RIGHT, right_motor_set_speed.read());
-            
-            // Set flags
-            motor_action_in_progress = true;
-        }
+        set_correction_timer(calculate_corrections.read());
+        int64_t left_encoder_count, right_encoder_count;
+        update_encoder_count(left_encoder_count, right_encoder_count);
+        motor_action_tracking(motor_correct_flag, left_encoder_count, right_encoder_count);
 
         // Update encoder data in shared memory
-        left_motor_rotation_count.write(rotation_count[3]);
-        right_motor_rotation_count.write(rotation_count[1]);
-        calculate_motor_speeds();
+        left_encoder_rotation_demand.write(left_encoder_count);
+        right_encoder_rotation_demand.write(right_encoder_count);
 
         count++;
     }

@@ -6,32 +6,31 @@
 #include <pico/time.h>
 #include <hardware/clocks.h>
 #include <hardware/pwm.h>
+#include <hardware/pio.h>
 #include <hardware/irq.h>
 #include <hardware/timer.h>
+#include <quadrature_encoder.h>
 
 // Global Declarations
 #define GYRO_TIMER_MS 10
-#define CORRECTION_TIMER_MS 25
+#define CORRECTION_TIMER_MS 15
 
 // Flags
-extern volatile bool ir_sensor_ready_flag_1;
-extern volatile bool ir_sensor_ready_flag_2;
-extern volatile bool ir_sensor_ready_flag_3;
-extern volatile bool gyro_sensor_ready_flag;
-extern volatile bool sw1_on_flag;
-extern volatile bool sw2_on_flag;
-extern volatile bool sw3_on_flag;
-extern volatile bool motor_correct_flag;
+extern bool ir_sensor_ready_flag_1;
+extern bool ir_sensor_ready_flag_2;
+extern bool ir_sensor_ready_flag_3;
+extern bool gyro_sensor_ready_flag;
+extern bool sw1_on_flag;
+extern bool sw2_on_flag;
+extern bool sw3_on_flag;
+extern bool motor_correct_flag;
 
 // Timers
 extern struct repeating_timer correction_timer;
 extern struct repeating_timer gyro_timer;
 
 // Encoder PWM data
-extern volatile uint64_t rotation_count[NUM_PWM_PINS]; // Store total # of rotations
-extern volatile uint32_t pwm_period[NUM_PWM_PINS]; // Store period for each pin
-extern volatile uint32_t last_wrap_time[NUM_PWM_PINS]; // Store last wrap time for each PWM pin
-extern volatile uint pwm_slice_num[NUM_PWM_PINS]; // Store pwm slice number
+extern int64_t rotation_count[2]; // Store total # of rotations
 
 // Interrupt Handlers
 void ir_sensor_irq_handler(uint gpio, uint32_t events);
@@ -52,6 +51,9 @@ void pwm_capture_setup();
 void setup_interrupts();
 
 // Motor Functions
+// Set correction timer based on value in shared memory
+void set_correction_timer(bool run_timer);
+
 // Handler for calculating correction
 bool correction_irq_handler(struct repeating_timer *t);
 
