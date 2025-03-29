@@ -20,5 +20,3 @@ SharedDataMutex<bool> motor_action(false);
 SharedDataMutex<bool> calculate_corrections(false);
 SharedDataMutex<float> left_motor_set_speed(false);
 SharedDataMutex<float> right_motor_set_speed(false);
-SharedDataMutex<float> left_motor_rotations(0);
-SharedDataMutex<float> right_motor_rotations(0);

@@ -121,10 +121,7 @@ int main()
         update_encoder_count(left_encoder_count, right_encoder_count);
         motor_action_tracking(motor_correct_flag, left_encoder_count, right_encoder_count);
 
-        // Update encoder data in shared memory
-        left_encoder_rotation_demand.write(left_encoder_count);
-        right_encoder_rotation_demand.write(right_encoder_count);
-
+        // Main loop iteration count
         count++;
     }
 

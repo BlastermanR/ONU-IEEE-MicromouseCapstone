@@ -47,13 +47,13 @@ class Maze {
     enum Status{
         UNKNOWN = 0,
         PARTIAL = 1,
-        FULL = 2,
+        KNOWN = 2,
     };
     static Status mazeStatus[MAZE_WIDTH][MAZE_LENGTH];
 
     Maze();
     void resetMaze();
-    const Cell& getCell(int x, int y) const;
+    const Cell* getCell(int x, int y) const;
     bool isExplored(int x, int y) const;
     void setCellStatus(int x, int y, Status status);
     void setCellWalls(int x, int y, uint8_t walls);

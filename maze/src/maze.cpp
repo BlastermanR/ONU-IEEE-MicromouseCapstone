@@ -38,26 +38,24 @@ Maze::Maze()
 // Reset maze data
 void Maze::resetMaze() 
 {
-    // TODO: Complete
-    /*
     for (int i = 0; i < MAZE_WIDTH; i++) {
         for (int j = 0; j < MAZE_WIDTH; j++) {
-            // Reset Maze
+            setCellWalls(i, j, 0b0000);
+            setCellStatus(i, j, UNKNOWN);
         }
-    }    
-    */
+    }
 }
 
 // NAVIGATION FUNCTIONS
 // Get cell information
-/*
-const Cell& Maze::getCell(int x, int y) const 
+const Cell* Maze::getCell(int x, int y) const 
 {
-    Cell null;
-    if (isValidCoordinate(x, y)) {return mazeLayout[x][y];}
-    else {return null;}
+    if (isValidCoordinate(x, y)) {
+        return &mazeLayout[x][y];
+    } else {
+        return nullptr;
+    }
 }
-*/
 
 // Check exploration status
 bool Maze::isExplored(int x, int y) const 
@@ -70,7 +68,7 @@ bool Maze::isExplored(int x, int y) const
 // Update the cell exploration status
 void Maze::setCellStatus(int x, int y, Status status) 
 {
-    if (isValidCoordinate(x, y)) {mazeStatus[x][y] = status;}
+    if (isValidCoordinate(x, y) && mazeStatus[x][y] < status) {mazeStatus[x][y] = status;}
 }
 
 // Update the cell's walls, does not propogate
@@ -83,16 +81,25 @@ void Maze::setCellWalls(int x, int y, uint8_t walls)
 void Maze::updateCellWalls(int x, int y, uint8_t walls) 
 {
     if (isValidCoordinate(x,y)) {
-       // TODO: COMPLETE
+        mazeLayout[x][y].addWall(walls);
+        if (walls |= 0b1000 && isValidCoordinate(x, y + 1)) {mazeLayout[x][y + 1].addWall(0b1000);}
+        if (walls |= 0b0100 && isValidCoordinate(x + 1, y)) {mazeLayout[x + 1][y].addWall(0b0100);}
+        if (walls |= 0b0010 && isValidCoordinate(x, y - 1)) {mazeLayout[x][y - 1].addWall(0b0010);}
+        if (walls |= 0b0001 && isValidCoordinate(x - 1, y)) {mazeLayout[x - 1][y].addWall(0b0001);}
     }
 }
 
 // Update exploration status, propogates
 void Maze::markAsExplored(int x, int y) 
 {
-    if (isValidCoordinate(x, y)) 
+    Maze::setCellStatus(x, y, KNOWN);
+
+    std::vector<std::pair<int, int>> adj_cells = getAdjacentCells(x, y);
+    while (!adj_cells.empty())
     {
-        // TODO: Complete
+        std::pair<int, int> cell = adj_cells.front();
+        setCellStatus(cell.first, cell.second, PARTIAL);
+        adj_cells.pop_back();
     }
 }
 
@@ -100,8 +107,8 @@ void Maze::markAsExplored(int x, int y)
 // Check if coordinates are valid
 bool Maze::isValidCoordinate(int x, int y) const 
 {  
-    // TODO: Finish
-    return true;
+    if (x >= 0 && x < MAZE_WIDTH && y >= 0 && y < MAZE_LENGTH) {return true;}
+    else {return false;}
 }
 
 // Return a list of adjacent coordinates
@@ -110,12 +117,8 @@ std::vector<std::pair<int, int>> Maze::getAdjacentCells(int x, int y) const
     // TODO: Finish
     std::vector<std::pair<int, int>> cells;
     if(isValidCoordinate(x, y + 1)) {cells.push_back(std::pair<int, int>(x, y + 1));}
-    else {cells.push_back(std::pair<int, int>(-1, -1));}
     if(isValidCoordinate(x + 1, y)) {cells.push_back(std::pair<int, int>(x + 1, y));}
-    else {cells.push_back(std::pair<int, int>(-1, -1));}
     if(isValidCoordinate(x, y - 1)) {cells.push_back(std::pair<int, int>(x, y - 1));}
-    else {cells.push_back(std::pair<int, int>(-1, -1));}
     if(isValidCoordinate(x - 1, y)) {cells.push_back(std::pair<int, int>(x - 1, y));}
-    else {cells.push_back(std::pair<int, int>(-1, -1));}
     return cells;
 }

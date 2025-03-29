@@ -1,23 +1,17 @@
 #ifndef ROBOT_H
 #define ROBOT_H
 
+// STD Libraries
+#include <cmath>
+
+// PICO SDK
+#include <pico/stdlib.h>
+
 // Custom Libraries
 #include <platform_config.h>
 #include <shared_data.h>
 #include <state_machine.h>
 #include <maze.h>
-
-// Define Enums
-enum TurnTypes
-{
-    FRONT_RIGHT = 45,
-    RIGHT = 90,
-    BACK_RIGHT = 135,
-    BACK = 180,
-    BACK_LEFT = 225,
-    TURN_LEFT = 270,
-    FRONT_LEFT = 315
-};
 
 enum CorrectionTypes 
 {
@@ -39,11 +33,11 @@ struct Robot
 
     // Function used to move the robot forward a given ammount of milimeters
     // Specifies the type of correction to be applied and whether the function is blocking
-    void move_forward(float distance_mm, CorrectionTypes correction, bool block);
+    void move_forward(float distance_mm, bool block, CorrectionTypes correction = STRAIGHT);
 
     // Function used to turn the robot clockwise
     // Specifies if the function is blocking
-    void turn(TurnTypes direction, bool block);
+    void turn(int direction_cw, bool block);
 
     // Updates Sensor/Maze data for estimated X,Y, and theta
     void calibrate_position();

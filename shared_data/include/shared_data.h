@@ -81,11 +81,9 @@ extern GyroReadingMutex gyro_data;
 extern SharedDataMutex<int64_t> left_encoder_rotation_demand; // In encoder Lines (4096 per motor rotation)
 extern SharedDataMutex<int64_t> right_encoder_rotation_demand;
 // Motor
-extern SharedDataMutex<bool> motor_action;
+extern SharedDataMutex<bool> motor_action; // Command to start motor action / signal end
 extern SharedDataMutex<bool> calculate_corrections; // Signal for main process to correct motor movement durring linear travel
 extern SharedDataMutex<float> left_motor_set_speed; // Speed factor (-1 -> 1)
 extern SharedDataMutex<float> right_motor_set_speed;
-extern SharedDataMutex<float> left_motor_rotations; // total # of encoder lines
-extern SharedDataMutex<float> right_motor_rotations;
 
 #endif
