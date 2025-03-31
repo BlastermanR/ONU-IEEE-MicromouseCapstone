@@ -83,6 +83,7 @@
         "streambuf": "cpp",
         "cinttypes": "cpp",
         "typeinfo": "cpp",
-        "platform_config.h": "c"
+        "platform_config.h": "c",
+        "map": "cpp"
     }
 }

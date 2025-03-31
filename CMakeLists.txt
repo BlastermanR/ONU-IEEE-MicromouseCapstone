@@ -43,6 +43,7 @@ add_executable(ONU_IEEE_Micromouse
     src/control_process.cpp
     src/gpio.cpp
     src/robot.cpp
+    src/testing_process.cpp
 )
 
 pico_set_program_name(ONU_IEEE_Micromouse "ONU_IEEE_Micromouse")
