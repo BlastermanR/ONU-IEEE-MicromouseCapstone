@@ -54,11 +54,7 @@ pico_set_program_version(ONU_IEEE_Micromouse "0.1")
 pico_enable_stdio_uart(ONU_IEEE_Micromouse 0)
 
 # Build for Debug
-if (ENABLE_DEBUG)
-    pico_enable_stdio_usb(ONU_IEEE_Micromouse 1) # Enable USB Log if DEBUG Enabled
-else()
-    pico_enable_stdio_usb(ONU_IEEE_Micromouse 0)
-endif()
+pico_enable_stdio_usb(ONU_IEEE_Micromouse 1)
 
 # Add the standard library to the build
 target_link_libraries(ONU_IEEE_Micromouse
