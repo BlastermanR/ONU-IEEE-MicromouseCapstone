@@ -1,38 +1,47 @@
 #ifndef SHARED_DATA_H
 #define SHARED_DATA_H
 
-//#include <pico/stdlib.h>
 #include <pico/mutex.h>
+#include <atomic>
 
 // Class to allow for varried data syncronization between cores
 template <typename T>
-class SharedDataMutex 
-{
-private:
-    mutex_t data_mutex;
-    T data;
+class SharedDataMutex {
+    private:
+    typename std::conditional<std::is_same<T, int64_t>::value, std::atomic<uint32_t>, std::atomic<T>>::type lower;
+    typename std::conditional<std::is_same<T, int64_t>::value, std::atomic<uint32_t>, std::atomic<T>>::type upper;
 
-public:
-    SharedDataMutex(T data) {
-        this->data = data;
-        mutex_init(&data_mutex);
+    public:
+    SharedDataMutex(T init_data) {
+        write(init_data);
     }
 
-    // Standard read with mutex protection
-    T read() {
-        mutex_enter_blocking(&data_mutex);
-        T value = data;
-        mutex_exit(&data_mutex);
-        return value;
+    T read() const {
+        if constexpr (std::is_same<T, int64_t>::value) {
+            uint32_t low, high, check;
+            do {
+                low = lower.load(std::memory_order_acquire);
+                high = upper.load(std::memory_order_acquire);
+                check = lower.load(std::memory_order_acquire);  // Check for modification
+            } while (low != check);  // Retry if lower changed
+            return (static_cast<int64_t>(high) << 32) | low;
+        } else {
+            return lower.load(std::memory_order_acquire);
+        }
     }
 
-    // Standard write with mutex protection
     void write(T new_data) {
-        mutex_enter_blocking(&data_mutex);
-        data = new_data;
-        mutex_exit(&data_mutex);
+        if constexpr (std::is_same<T, int64_t>::value) {
+            uint32_t low = static_cast<uint32_t>(new_data & 0xFFFFFFFF);
+            uint32_t high = static_cast<uint32_t>(new_data >> 32);
+            lower.store(low, std::memory_order_release);
+            upper.store(high, std::memory_order_release);
+        } else {
+            lower.store(new_data, std::memory_order_release);
+        }
     }
 };
+    
 
 struct GyroReadingMutex
 {
