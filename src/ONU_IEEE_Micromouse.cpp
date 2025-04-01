@@ -28,12 +28,27 @@
 #include <shared_data.h>
 #include <motor_control.h>
 #include <control_process.h>
+#include <testing_process.h>
 
 // Process handles fast, time sensative operations such as interrupts
 int main()
 {
-    // Configure gpio pins
     define_gpio();
+
+    gpio_init(PICO_DEFAULT_LED_PIN);
+    gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_OUT);
+    printf("Start\n");
+    gpio_put(PICO_DEFAULT_LED_PIN, 1);
+    sleep_ms(2000);
+    printf("Start\n");
+    gpio_put(PICO_DEFAULT_LED_PIN, 0);
+    sleep_ms(2000);
+    printf("Start\n");
+    gpio_put(PICO_DEFAULT_LED_PIN, 1);
+    sleep_ms(2000);
+    printf("Start\n");
+    gpio_put(PICO_DEFAULT_LED_PIN, 0);
+    // Configure gpio pins
 
     // Set Switches
     sw1.write(gpio_get(SW1));
@@ -42,21 +57,21 @@ int main()
 
     // Define Interrupts
     configure_i2c();
-
+    /*
     // Set VL53L4CD IR Sensor Addresses, Inititate Sensors
     if (!configure_ir_address() || !VL53L4CD_setup()) 
     {
         printf("CRITICAL FAILURE: Exiting Program\n");
         return -1;
     }
-
+    */
     // Print I2C Devices
     i2c_scan();
 
     // Launch 2nd Core --> Handles time non critical tasks
-    printf("Core 1: Launching assistant process");
-    multicore_launch_core1(control_process);
-    printf("Core 1: Launched assistant process");
+    printf("Core 1: Launching assistant process\n");
+    multicore_launch_core1(testing_process);
+    printf("Core 1: Launched assistant process\n");
 
     // Enable Inturrupts
     setup_interrupts();
@@ -68,7 +83,9 @@ int main()
     int status = 0;
     uint64_t count = 0;
 
-    while(!status || control_process_exit_signal.read()) 
+    QuadratureEncoder encoder_left = QuadratureEncoder(CBL_LOGIC, ENCODER_NUM_LINES_ROTATION, 1.0);
+
+    while(/*!status || control_process_exit_signal.read()*/ true) 
     {
         // Interrupt Flag Checks
         if(ir_sensor_ready_flag_1)
@@ -118,10 +135,16 @@ int main()
         // Update motor speed/rotations/corrections
         set_correction_timer(calculate_corrections.read());
         int64_t left_encoder_count, right_encoder_count;
-        update_encoder_count(left_encoder_count, right_encoder_count);
+        right_encoder_count = -1;
+
+        encoder_left.update(1.0);
+        left_encoder_count = encoder_left.get_count();
+
+        //printf("CHECK: %i & %i\n", left_encoder_count, right_encoder_count);
+
         motor_action_tracking(motor_correct_flag, left_encoder_count, right_encoder_count);
-        left_encoder_count_shared.write(left_encoder_count);
-        right_encoder_count_shared.write(right_encoder_count);
+        left_encoder_count_shared.write(1000);
+        right_encoder_count_shared.write(2000);
 
         // Main loop iteration count
         count++;

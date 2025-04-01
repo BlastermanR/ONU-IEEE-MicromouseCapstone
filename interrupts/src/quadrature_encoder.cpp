@@ -1,56 +1,52 @@
-#include <quadrature_encoder.pio.h>
-#include <quadrature_encoder.h>
-PIO pio_left = pio0;
-PIO pio_right = pio1;
-const uint sm_left = 0;
-const uint sm_right = 0;
-int32_t last_left_encoder_count = INT32_MIN;
-int32_t last_right_encoder_count = INT32_MIN;
+#include "quadrature_encoder.h"
 
-
-// Create a function to iitialize PIO for quadrature decoding
-void init_quadrature_encoders()
+QuadratureEncoder::QuadratureEncoder(uint8_t pin, float ppr, float gear_ratio) : ppr(ppr * 4.0f), gear_ratio(gear_ratio)
 {
-    pio_add_program(pio_left, &quadrature_encoder_program);
-    quadrature_encoder_program_init(pio_left, sm_left, CAL_LOGIC, 0);
-
-    pio_add_program(pio_right, &quadrature_encoder_program);
-    quadrature_encoder_program_init(pio_right, sm_right, CAR_LOGIC, 0);
+    pio_instance = pio0;
+    sm = pio_claim_unused_sm(pio_instance, true);
+    if (sm == -1)
+        pio_instance = pio1;
+    sm = pio_claim_unused_sm(pio_instance, true);
+    uint offset = pio_add_program(pio_instance, &quadrature_encoder_program);
+    quadrature_encoder_program_init(pio_instance, sm, pin, 0);
 }
 
-void update_encoder_count(int64_t &left_encoder_count, int64_t &right_encoder_count) 
+void QuadratureEncoder::update(float dt)
 {
-    int32_t new_left_count = quadrature_encoder_get_count(pio_left, sm_left);
-    int32_t new_right_count = quadrature_encoder_get_count(pio_right, sm_right);
-    
-    // Left_Motor
-    // Detect overflow or underflow
-    int32_t diff = new_left_count - last_left_encoder_count;
+    _last_count = _count;
+    _count = quadrature_encoder_get_count(pio_instance, sm);
+    _dt = dt;
+}
 
-    if (diff > (1 << 30)) {
-        // Overflow: new_count jumped from small to large (e.g., 0x7FFFFFFF to 0x80000000)
-        left_encoder_count += (1LL << 32);  // Add 2^32
-    } else if (diff < -(1 << 30)) {
-        // Underflow: new_count jumped from large to small (e.g., 0x80000000 to 0x7FFFFFFF)
-        left_encoder_count -= (1LL << 32);  // Subtract 2^32
-    }
+int32_t QuadratureEncoder::get_count()
+{
+    return _count;
+}
 
-    // Update lower 32 bits
-    left_encoder_count = (left_encoder_count & ~0xFFFFFFFFULL) | (uint32_t)new_left_count;
-    last_left_encoder_count = new_left_count;
+float QuadratureEncoder::get_position(bool degrees)
+{
+    if (degrees)
+        return 360.0f * _count / (ppr * gear_ratio); // deg
+    else
+        return 2 * M_PI * _count / (ppr * gear_ratio); // rad
+}
 
-    // Right Motor
-    // Detect overflow or underflow
-    diff = new_right_count - last_right_encoder_count;
-    if (diff > (1 << 30)) {
-        // Overflow: new_count jumped from small to large (e.g., 0x7FFFFFFF to 0x80000000)
-        right_encoder_count += (1LL << 32);  // Add 2^32
-    } else if (diff < -(1 << 30)) {
-        // Underflow: new_count jumped from large to small (e.g., 0x80000000 to 0x7FFFFFFF)
-        right_encoder_count -= (1LL << 32);  // Subtract 2^32
-    }
+float QuadratureEncoder::get_velocity(bool degrees)
+{
+    float velocity = ((_count - _last_count) / (ppr * gear_ratio)) / _dt;
 
-    // Update lower 32 bits
-    right_encoder_count = (right_encoder_count & ~0xFFFFFFFFULL) | (uint32_t)new_right_count;
-    last_right_encoder_count = new_right_count;
+    if (degrees)
+        return 360.0f * velocity; // deg/s
+    else
+        return 2 * M_PI * velocity; // rad/s
+}
+
+bool QuadratureEncoder::get_direction()
+{
+    return _count > _last_count ? 1 : -1;
+}
+
+int8_t QuadratureEncoder::get_sign()
+{
+    return (_count > 0) - (_count < 0);
 }
