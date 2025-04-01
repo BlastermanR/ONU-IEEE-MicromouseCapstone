@@ -139,16 +139,16 @@ int main()
         int64_t left_encoder_count, right_encoder_count;
         update_encoder_count(left_encoder_count, right_encoder_count);
         motor_action_tracking(motor_correct_flag, left_encoder_count, right_encoder_count);
-        left_encoder_count_shared.write(-1000);
-        right_encoder_count_shared.write(1000);
+        left_encoder_count_shared.write(left_encoder_count);
+        right_encoder_count_shared.write(right_encoder_count);
 
         // Main loop iteration count
         count++;
     }
 
     // Ensure motors are stopped
-    set_motor_speed(MOTOR_LEFT, 1000);
-    set_motor_speed(MOTOR_RIGHT, -1000);
+    set_motor_speed(MOTOR_LEFT, 0);
+    set_motor_speed(MOTOR_RIGHT, 0);
 
     printf("Main process exited with code: %d on iteration: %d\n", status, count);
     return status;

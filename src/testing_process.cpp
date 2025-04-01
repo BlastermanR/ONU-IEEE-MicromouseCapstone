@@ -15,24 +15,30 @@ void testing_process()
 {
     // Timer To Connect
     wait_test(5000);
-
-    printf("\nTesting Encoders\n Initial values for L/R are %i and %i\n", 
-    left_encoder_count_shared.read(), right_encoder_count_shared.read());
     
-    // Move Motors
-    set_motor_speed(MOTOR_LEFT, 0.2);
-    set_motor_speed(MOTOR_RIGHT, -0.2);
+    while(true)
+    {
+        printf("\nTesting Encoders\n Initial values for L/R are %i and %i\n", 
+        left_encoder_count_shared.read(), right_encoder_count_shared.read());
+     
+        // Move Motors
+        set_motor_speed(MOTOR_LEFT, 0.2);
+        set_motor_speed(MOTOR_RIGHT, 0.2);
 
-    // Wait
-    sw1.write(1);
-    sleep_ms(2000);
-    sw1.write(0);
+        // Wait
+        sw1.write(1);
+        sleep_ms(2000);
+        sw1.write(0);
 
-    set_motor_speed(MOTOR_LEFT, 0);
-    set_motor_speed(MOTOR_RIGHT, 0);
+        set_motor_speed(MOTOR_LEFT, 0);
+        set_motor_speed(MOTOR_RIGHT, 0);
 
-    printf("Final values for L/R are %i and %i after 2s\n", 
-    left_encoder_count_shared.read(), right_encoder_count_shared.read());    
+        printf("Final values for L/R are %i and %i after 2s\n", 
+        left_encoder_count_shared.read(), right_encoder_count_shared.read());   
+
+        sleep_ms(1000);
+    }
+ 
 
     /*
     // Distance Testing
