@@ -75,10 +75,6 @@ void setup_interrupts() {
     gpio_set_irq_enabled_with_callback(SW1, GPIO_IRQ_LEVEL_HIGH | GPIO_IRQ_LEVEL_LOW, false, &switch_irq_handler);
     gpio_set_irq_enabled_with_callback(SW2, GPIO_IRQ_LEVEL_HIGH | GPIO_IRQ_LEVEL_LOW, false, &switch_irq_handler);
     gpio_set_irq_enabled_with_callback(SW3, GPIO_IRQ_LEVEL_HIGH | GPIO_IRQ_LEVEL_LOW, false, &switch_irq_handler);
-
-    // Setup PWM Inturrupts
-    init_quadrature_encoders();
-
 }
 
 // Determine if correction timer should run

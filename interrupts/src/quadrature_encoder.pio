@@ -3,7 +3,6 @@
 ;
 ; SPDX-License-Identifier: BSD-3-Clause
 ;
-.pio_version 0 // only requires PIO version 0
 
 .program quadrature_encoder
 
@@ -96,19 +95,16 @@ increment_cont:
 // if the application doesn't require a very high sampling rate. Passing zero
 // will set the clock to the maximum
 
-static inline void quadrature_encoder_program_init(PIO pio, uint sm, int offset, uint pin, int max_step_rate)
+static inline void quadrature_encoder_program_init(PIO pio, uint sm, uint pin, int max_step_rate)
 {
-    pio_sm_set_consecutive_pindirs(pio, sm, pin - 1, 2, false);
-    pio_gpio_init(pio, pin - 1); // B
-    pio_gpio_init(pio, pin); // A
-
-    //gpio_pull_up(pin - 1);
+    pio_sm_set_consecutive_pindirs(pio, sm, pin, 2, false);
     //gpio_pull_up(pin);
+    //gpio_pull_up(pin + 1);
 
-    pio_sm_config c = quadrature_encoder_program_get_default_config(offset);
+    pio_sm_config c = quadrature_encoder_program_get_default_config(0);
 
-    sm_config_set_in_pins(&c, pin - 1); // for WAIT, IN
-    sm_config_set_jmp_pin(&c, pin - 1); // for JMP
+    sm_config_set_in_pins(&c, pin); // for WAIT, IN
+    sm_config_set_jmp_pin(&c, pin); // for JMP
     // shift to left, autopull disabled
     sm_config_set_in_shift(&c, false, false, 32);
     // don't join FIFO's
@@ -123,7 +119,7 @@ static inline void quadrature_encoder_program_init(PIO pio, uint sm, int offset,
         sm_config_set_clkdiv(&c, div);
     }
 
-    pio_sm_init(pio, sm, offset, &c);
+    pio_sm_init(pio, sm, 0, &c);
     pio_sm_set_enabled(pio, sm, true);
 }
 

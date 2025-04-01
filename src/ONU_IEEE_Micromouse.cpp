@@ -83,6 +83,8 @@ int main()
     int status = 0;
     uint64_t count = 0;
 
+    QuadratureEncoder encoder_left = QuadratureEncoder(CBL_LOGIC, ENCODER_NUM_LINES_ROTATION, 1.0);
+
     while(/*!status || control_process_exit_signal.read()*/ true) 
     {
         // Interrupt Flag Checks
@@ -133,13 +135,16 @@ int main()
         // Update motor speed/rotations/corrections
         set_correction_timer(calculate_corrections.read());
         int64_t left_encoder_count, right_encoder_count;
-        update_encoder_count(left_encoder_count, right_encoder_count);
+        right_encoder_count = -1;
+
+        encoder_left.update(1.0);
+        left_encoder_count = encoder_left.get_count();
 
         //printf("CHECK: %i & %i\n", left_encoder_count, right_encoder_count);
 
         motor_action_tracking(motor_correct_flag, left_encoder_count, right_encoder_count);
-        left_encoder_count_shared.write(left_encoder_count);
-        right_encoder_count_shared.write(right_encoder_count);
+        left_encoder_count_shared.write(1000);
+        right_encoder_count_shared.write(2000);
 
         // Main loop iteration count
         count++;
