@@ -72,9 +72,9 @@ void setup_interrupts() {
     add_repeating_timer_ms(GYRO_TIMER_MS, gyro_sensor_irq_handler, nullptr, &gyro_timer);
 
     // Enable Switch Inturrupts
-    gpio_set_irq_enabled_with_callback(SW1, GPIO_IRQ_LEVEL_HIGH | GPIO_IRQ_LEVEL_LOW, true, &switch_irq_handler);
-    gpio_set_irq_enabled_with_callback(SW2, GPIO_IRQ_LEVEL_HIGH | GPIO_IRQ_LEVEL_LOW, true, &switch_irq_handler);
-    gpio_set_irq_enabled_with_callback(SW3, GPIO_IRQ_LEVEL_HIGH | GPIO_IRQ_LEVEL_LOW, true, &switch_irq_handler);
+    gpio_set_irq_enabled_with_callback(SW1, GPIO_IRQ_LEVEL_HIGH | GPIO_IRQ_LEVEL_LOW, false, &switch_irq_handler); // TODO Fix
+    gpio_set_irq_enabled_with_callback(SW2, GPIO_IRQ_LEVEL_HIGH | GPIO_IRQ_LEVEL_LOW, false, &switch_irq_handler);
+    gpio_set_irq_enabled_with_callback(SW3, GPIO_IRQ_LEVEL_HIGH | GPIO_IRQ_LEVEL_LOW, false, &switch_irq_handler);
 
     // Setup PWM Inturrupts
     init_quadrature_encoders();

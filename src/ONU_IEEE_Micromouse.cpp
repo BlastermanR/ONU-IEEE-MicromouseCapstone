@@ -28,12 +28,29 @@
 #include <shared_data.h>
 #include <motor_control.h>
 #include <control_process.h>
+#include <testing_process.h>
 
 // Process handles fast, time sensative operations such as interrupts
 int main()
 {
     // Configure gpio pins
     define_gpio();
+
+    // REMOVE LATER #################################
+    gpio_init(PICO_DEFAULT_LED_PIN);
+    gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_OUT);
+    printf("Start\n");
+    gpio_put(PICO_DEFAULT_LED_PIN, 1);
+    sleep_ms(2000);
+    printf("Start\n");
+    gpio_put(PICO_DEFAULT_LED_PIN, 0);
+    sleep_ms(2000);
+    printf("Start\n");
+    gpio_put(PICO_DEFAULT_LED_PIN, 1);
+    sleep_ms(2000);
+    printf("Start\n");
+    gpio_put(PICO_DEFAULT_LED_PIN, 0);
+    // ###############################################
 
     // Set Switches
     sw1.write(gpio_get(SW1));
@@ -43,20 +60,22 @@ int main()
     // Define Interrupts
     configure_i2c();
 
+    /*
     // Set VL53L4CD IR Sensor Addresses, Inititate Sensors
     if (!configure_ir_address() || !VL53L4CD_setup()) 
     {
         printf("CRITICAL FAILURE: Exiting Program\n");
         return -1;
     }
+    */
 
     // Print I2C Devices
     i2c_scan();
 
     // Launch 2nd Core --> Handles time non critical tasks
-    printf("Core 1: Launching assistant process");
-    multicore_launch_core1(control_process);
-    printf("Core 1: Launched assistant process");
+    printf("Core 1: Launching assistant process\n");
+    multicore_launch_core1(testing_process);
+    printf("Core 1: Launched assistant process\n");
 
     // Enable Inturrupts
     setup_interrupts();

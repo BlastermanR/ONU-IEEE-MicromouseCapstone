@@ -171,6 +171,7 @@ void i2c_scan() {
 
 bool is_i2c_valid(uint8_t address) 
 {
+    sleep_ms(1);
     uint8_t dummy;
     int ret = i2c_read_blocking(I2C_PORT, address, &dummy, 1, false);
     if (ret >= 0) { return  true; }

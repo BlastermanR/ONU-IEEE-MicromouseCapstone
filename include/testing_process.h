@@ -12,6 +12,6 @@
 #include <robot.h>
 
 // Process To Test Robot
-void testingProcess();
+void testing_process();
 
 #endif // TEST_H

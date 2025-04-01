@@ -3,7 +3,7 @@
 void wait_test(uint seconds)
 {
     printf("Waiting..");
-    for (int i = seconds; i > 0; i--) 
+    for (int i = seconds / 1000; i > 0; i--) 
     {
         printf("%i..", i);
         sleep_ms(1000);
@@ -34,6 +34,7 @@ void testing_process()
     printf("Final values for L/R are %i and %i after 2s\n", 
     left_encoder_count_shared.read(), right_encoder_count_shared.read());    
 
+    /*
     // Distance Testing
     sw1.write(1);
     wait_test(7000);
@@ -55,4 +56,5 @@ void testing_process()
     robot.move_forward(400, true, STRAIGHT);
 
     return;
+    */
 }
