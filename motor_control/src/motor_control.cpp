@@ -95,15 +95,15 @@ void set_motor_speed(uint8_t MOTOR_ID, float speed)
 
     float duty1;
     float duty2;
-    if (speed > 0) 
+    if (speed < 0) 
     {
-        // Forward movement
+        // Backward movement
         duty1 = std::abs(speed);
         duty2 = 0;
     } 
-    else if (speed < 0) 
+    else if (speed > 0) 
     {
-        // Backward movement
+        // Forward movement
         duty1 = 0;
         duty2 = std::abs(speed);
     } 

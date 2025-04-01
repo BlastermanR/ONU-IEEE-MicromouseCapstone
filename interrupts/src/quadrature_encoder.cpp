@@ -20,7 +20,7 @@ void init_quadrature_encoders()
 
 void update_encoder_count(int64_t &left_encoder_count, int64_t &right_encoder_count) 
 {
-    int32_t new_left_count = quadrature_encoder_get_count(pio_left, sm_left);
+    int32_t new_left_count = -quadrature_encoder_get_count(pio_left, sm_left);
     int32_t new_right_count = quadrature_encoder_get_count(pio_right, sm_right);
     
     // Left_Motor

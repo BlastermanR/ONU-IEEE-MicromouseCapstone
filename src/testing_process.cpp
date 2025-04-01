@@ -18,8 +18,10 @@ void testing_process()
     
     while(true)
     {
-        printf("\nTesting Encoders\n Initial values for L/R are %i and %i\n", 
-        left_encoder_count_shared.read(), right_encoder_count_shared.read());
+        if(sw1.read())
+        {
+            sleep_ms(1500);
+        }
      
         // Move Motors
         set_motor_speed(MOTOR_LEFT, 0.2);
@@ -31,10 +33,7 @@ void testing_process()
         sw1.write(0);
 
         set_motor_speed(MOTOR_LEFT, 0);
-        set_motor_speed(MOTOR_RIGHT, 0);
-
-        printf("Final values for L/R are %i and %i after 2s\n", 
-        left_encoder_count_shared.read(), right_encoder_count_shared.read());   
+        set_motor_speed(MOTOR_RIGHT, 0); 
 
         sleep_ms(1000);
     }
