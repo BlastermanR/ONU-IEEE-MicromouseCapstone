@@ -16,24 +16,32 @@ void testing_process()
     // Timer To Connect
     wait_test(5000);
     
+    Robot robot = Robot();
+
     while(true)
     {
         if(sw1.read())
         {
             sleep_ms(1500);
+            // Move Motors
+            set_motor_speed(MOTOR_LEFT, 0.15);
+            set_motor_speed(MOTOR_RIGHT, 0.15);
+
+            // Wait
+            sw1.write(1);
+            sleep_ms(2000);
+            sw1.write(0);
+
+            set_motor_speed(MOTOR_LEFT, 0);
+            set_motor_speed(MOTOR_RIGHT, 0); 
         }
-     
-        // Move Motors
-        set_motor_speed(MOTOR_LEFT, 0.2);
-        set_motor_speed(MOTOR_RIGHT, 0.2);
 
-        // Wait
-        sw1.write(1);
-        sleep_ms(2000);
-        sw1.write(0);
-
-        set_motor_speed(MOTOR_LEFT, 0);
-        set_motor_speed(MOTOR_RIGHT, 0); 
+        if(sw2.read())
+        {
+            sleep_ms(1500);
+            robot.move_forward(50, true, NONE);
+        }
+    
 
         sleep_ms(1000);
     }

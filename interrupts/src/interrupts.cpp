@@ -39,7 +39,7 @@ bool gyro_sensor_irq_handler(struct repeating_timer *t)
 // Switch Inturrupt Toggle
 void switch_irq_handler(uint gpio, uint32_t events)
 {
-    if (events = GPIO_IRQ_LEVEL_HIGH) 
+    if (events == GPIO_IRQ_EDGE_RISE) 
     {
         switch(gpio) 
         {
@@ -49,7 +49,7 @@ void switch_irq_handler(uint gpio, uint32_t events)
             default:  {}
         }
     }
-    else if (events = GPIO_IRQ_LEVEL_LOW)
+    else if (events == GPIO_IRQ_EDGE_FALL)
     {
         switch(gpio) 
         {
@@ -72,9 +72,9 @@ void setup_interrupts() {
     add_repeating_timer_ms(GYRO_TIMER_MS, gyro_sensor_irq_handler, nullptr, &gyro_timer);
 
     // Enable Switch Inturrupts
-    gpio_set_irq_enabled_with_callback(SW1, GPIO_IRQ_LEVEL_HIGH | GPIO_IRQ_LEVEL_LOW, false, &switch_irq_handler); // TODO Fix
-    gpio_set_irq_enabled_with_callback(SW2, GPIO_IRQ_LEVEL_HIGH | GPIO_IRQ_LEVEL_LOW, false, &switch_irq_handler);
-    gpio_set_irq_enabled_with_callback(SW3, GPIO_IRQ_LEVEL_HIGH | GPIO_IRQ_LEVEL_LOW, false, &switch_irq_handler);
+    gpio_set_irq_enabled_with_callback(SW1, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &switch_irq_handler);
+    gpio_set_irq_enabled_with_callback(SW2, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &switch_irq_handler);
+    gpio_set_irq_enabled_with_callback(SW3, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &switch_irq_handler);
 
     // Setup PWM Inturrupts
     init_quadrature_encoders();
