@@ -96,16 +96,16 @@ increment_cont:
 // if the application doesn't require a very high sampling rate. Passing zero
 // will set the clock to the maximum
 
-static inline void quadrature_encoder_program_init(PIO pio, uint sm, uint pin, int max_step_rate)
+static inline void quadrature_encoder_program_init(PIO pio, uint sm, int offset, uint pin, int max_step_rate)
 {
     pio_sm_set_consecutive_pindirs(pio, sm, pin - 1, 2, false);
     pio_gpio_init(pio, pin - 1); // B
     pio_gpio_init(pio, pin); // A
 
-    gpio_pull_up(pin - 1);
-    gpio_pull_up(pin);
+    //gpio_pull_up(pin - 1);
+    //gpio_pull_up(pin);
 
-    pio_sm_config c = quadrature_encoder_program_get_default_config(0);
+    pio_sm_config c = quadrature_encoder_program_get_default_config(offset);
 
     sm_config_set_in_pins(&c, pin - 1); // for WAIT, IN
     sm_config_set_jmp_pin(&c, pin - 1); // for JMP
@@ -123,7 +123,7 @@ static inline void quadrature_encoder_program_init(PIO pio, uint sm, uint pin, i
         sm_config_set_clkdiv(&c, div);
     }
 
-    pio_sm_init(pio, sm, 0, &c);
+    pio_sm_init(pio, sm, offset, &c);
     pio_sm_set_enabled(pio, sm, true);
 }
 

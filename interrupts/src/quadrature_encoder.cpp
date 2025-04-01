@@ -2,8 +2,8 @@
 #include <quadrature_encoder.h>
 PIO pio_left = pio0;
 PIO pio_right = pio1;
-const uint sm_left = 0;
-const uint sm_right = 0;
+uint sm_left;
+uint sm_right;
 int32_t last_left_encoder_count = INT32_MIN;
 int32_t last_right_encoder_count = INT32_MIN;
 
@@ -11,11 +11,17 @@ int32_t last_right_encoder_count = INT32_MIN;
 // Create a function to iitialize PIO for quadrature decoding
 void init_quadrature_encoders()
 {
-    pio_add_program(pio_left, &quadrature_encoder_program);
-    quadrature_encoder_program_init(pio_left, sm_left, CAL_LOGIC, 0);
+    // Setup left encoder program
+    sm_left = pio_claim_unused_sm(pio_left, true);
+    uint offset_left = pio_add_program(pio_left, &quadrature_encoder_program);
+    quadrature_encoder_program_init(pio_left, sm_left, offset_left, CAL_LOGIC, 0);
+    pio_sm_set_enabled(pio_left, sm_left, true);
 
-    pio_add_program(pio_right, &quadrature_encoder_program);
-    quadrature_encoder_program_init(pio_right, sm_right, CAR_LOGIC, 0);
+    // Setup right encoder program
+    sm_right = pio_claim_unused_sm(pio_right, true);
+    uint offset_right = pio_add_program(pio_right, &quadrature_encoder_program);
+    quadrature_encoder_program_init(pio_right, sm_right, offset_right, CAR_LOGIC, 0);
+    pio_sm_set_enabled(pio_right, sm_right, true);
 }
 
 void update_encoder_count(int64_t &left_encoder_count, int64_t &right_encoder_count) 

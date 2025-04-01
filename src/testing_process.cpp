@@ -3,7 +3,7 @@
 void wait_test(uint seconds)
 {
     printf("Waiting..");
-    for (int i = seconds; i > 0; i--) 
+    for (int i = seconds / 1000; i > 0; i--) 
     {
         printf("%i..", i);
         sleep_ms(1000);
@@ -24,9 +24,7 @@ void testing_process()
     set_motor_speed(MOTOR_RIGHT, -0.2);
 
     // Wait
-    sw1.write(1);
     sleep_ms(2000);
-    sw1.write(0);
 
     set_motor_speed(MOTOR_LEFT, 0);
     set_motor_speed(MOTOR_RIGHT, 0);

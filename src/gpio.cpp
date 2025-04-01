@@ -73,16 +73,17 @@ void define_gpio() {
 
     // Motor Input
     gpio_init(CAL_LOGIC);
-    gpio_set_dir(CAL_LOGIC, GPIO_IN); 
+    gpio_set_function(CAL_LOGIC, GPIO_FUNC_PIO0); 
 
     gpio_init(CBL_LOGIC);
-    gpio_set_dir(CBL_LOGIC, GPIO_IN); 
+    gpio_set_function(CBL_LOGIC, GPIO_FUNC_PIO0); 
 
     gpio_init(CAR_LOGIC);
-    gpio_set_dir(CAR_LOGIC, GPIO_IN); 
+    gpio_set_function(CAR_LOGIC, GPIO_FUNC_PIO1); 
 
     gpio_init(CBR_LOGIC);
-    gpio_set_dir(CBR_LOGIC, GPIO_IN); 
+    gpio_set_function(CBR_LOGIC, GPIO_FUNC_PIO1); 
+
     printf("GPIO configured\n");
 
     // Setup PWM
@@ -171,6 +172,7 @@ void i2c_scan() {
 
 bool is_i2c_valid(uint8_t address) 
 {
+    sleep_ms(1);
     uint8_t dummy;
     int ret = i2c_read_blocking(I2C_PORT, address, &dummy, 1, false);
     if (ret >= 0) { return  true; }
