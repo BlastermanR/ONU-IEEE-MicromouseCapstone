@@ -4,24 +4,24 @@ PIO pio_left = pio0;
 PIO pio_right = pio1;
 const uint sm_left = 0;
 const uint sm_right = 0;
-int32_t last_left_encoder_count = INT32_MIN;
-int32_t last_right_encoder_count = INT32_MIN;
+int32_t last_left_encoder_count = 0;
+int32_t last_right_encoder_count = 0;
 
 
 // Create a function to iitialize PIO for quadrature decoding
 void init_quadrature_encoders()
 {
     pio_add_program(pio_left, &quadrature_encoder_program);
-    quadrature_encoder_program_init(pio_left, sm_left, CAL_LOGIC, 0);
+    quadrature_encoder_program_init(pio_left, sm_left, CBL_LOGIC, 0);
 
     pio_add_program(pio_right, &quadrature_encoder_program);
-    quadrature_encoder_program_init(pio_right, sm_right, CAR_LOGIC, 0);
+    quadrature_encoder_program_init(pio_right, sm_right, CBR_LOGIC, 0);
 }
 
 void update_encoder_count(int64_t &left_encoder_count, int64_t &right_encoder_count) 
 {
-    int32_t new_left_count = -quadrature_encoder_get_count(pio_left, sm_left);
-    int32_t new_right_count = quadrature_encoder_get_count(pio_right, sm_right);
+    int32_t new_left_count = quadrature_encoder_get_count(pio_left, sm_left);
+    int32_t new_right_count = -quadrature_encoder_get_count(pio_right, sm_right);
     
     // Left_Motor
     // Detect overflow or underflow

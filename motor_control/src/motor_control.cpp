@@ -135,9 +135,9 @@ void motor_action_tracking(bool &motor_correction, int64_t total_left_encoder_co
 {
     if (motor_action_in_progress)
     {       
-        if (((total_left_encoder_count >= target_left_motor_rotation_steps && target_left_motor_rotation_steps > 0) || 
+        if (((total_left_encoder_count >= target_left_motor_rotation_steps && target_left_motor_rotation_steps >= 0) || 
              (total_left_encoder_count <= target_left_motor_rotation_steps && target_left_motor_rotation_steps < 0)) &&
-            ((total_right_encoder_count >= target_right_motor_rotation_steps && target_right_motor_rotation_steps > 0) || 
+            ((total_right_encoder_count >= target_right_motor_rotation_steps && target_right_motor_rotation_steps >= 0) || 
              (total_right_encoder_count <= target_right_motor_rotation_steps && target_right_motor_rotation_steps < 0)))
         {
             // Disable motors

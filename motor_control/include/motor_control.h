@@ -2,7 +2,7 @@
 #define CONTROL_H
 
 // STD Libraries
-#include <iostream>
+#include <cstdio>
 #include <cmath>
 #include <algorithm>
 

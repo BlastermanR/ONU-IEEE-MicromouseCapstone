@@ -57,6 +57,8 @@ int main()
     sw2.write(gpio_get(SW2));
     sw3.write(gpio_get(SW3));
 
+    printf("SW1: %i", gpio_get(SW1));
+
     // Define Interrupts
     configure_i2c();
 

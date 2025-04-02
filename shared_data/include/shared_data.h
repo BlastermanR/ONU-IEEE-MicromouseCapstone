@@ -87,8 +87,8 @@ extern SharedDataMutex<uint16_t> middle_IR_sensor;
 extern SharedDataMutex<uint16_t> right_IR_sensor;
 extern GyroReadingMutex gyro_data;
 // Encoder Data
-extern SharedDataMutex<int64_t> left_encoder_rotation_demand; // In encoder Lines (4096 per motor rotation)
-extern SharedDataMutex<int64_t> right_encoder_rotation_demand;
+extern SharedDataMutex<int32_t> left_encoder_rotation_demand; // In encoder Lines (4096 per motor rotation)
+extern SharedDataMutex<int32_t> right_encoder_rotation_demand;
 // Motor
 extern SharedDataMutex<bool> motor_action; // Command to start motor action / signal end
 extern SharedDataMutex<bool> calculate_corrections; // Signal for main process to correct motor movement durring linear travel

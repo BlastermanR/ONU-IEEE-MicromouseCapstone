@@ -17,6 +17,9 @@ void testing_process()
     wait_test(5000);
     
     Robot robot = Robot();
+    
+    left_motor_set_speed.write(0.1);
+    right_motor_set_speed.write(0.1);
 
     while(true)
     {
@@ -24,8 +27,8 @@ void testing_process()
         {
             sleep_ms(1500);
             // Move Motors
-            set_motor_speed(MOTOR_LEFT, 0.15);
-            set_motor_speed(MOTOR_RIGHT, 0.15);
+            set_motor_speed(MOTOR_LEFT, 0.5);
+            set_motor_speed(MOTOR_RIGHT, 0.5);
 
             // Wait
             sw1.write(1);
@@ -34,12 +37,14 @@ void testing_process()
 
             set_motor_speed(MOTOR_LEFT, 0);
             set_motor_speed(MOTOR_RIGHT, 0); 
+
+            printf("counts: %i and %i\n", left_encoder_count_shared.read(), right_encoder_count_shared.read());
         }
 
         if(sw2.read())
         {
             sleep_ms(1500);
-            robot.move_forward(50, true, NONE);
+            robot.move_forward(100, true, NONE);
         }
     
 
