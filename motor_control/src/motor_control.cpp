@@ -2,12 +2,10 @@
 
 // Local global variables for motor actions
 bool motor_action_in_progress = false;
-float left_motor_action_start_count;
-float right_motor_action_start_count;
-float target_left_motor_rotation_steps;
-float target_right_motor_rotation_steps;
-float temp_left_motor_set_speed;
-float temp_right_motor_set_speed;
+volatile int64_t target_left_motor_rotation_steps = 0;
+volatile int64_t target_right_motor_rotation_steps = 0;
+float temp_left_motor_set_speed = 0;
+float temp_right_motor_set_speed = 0;
 
 // PID variables
 float previous_error = 0.0;
@@ -140,6 +138,7 @@ void motor_action_tracking(bool &motor_correction, int64_t total_left_encoder_co
             ((total_right_encoder_count >= target_right_motor_rotation_steps && target_right_motor_rotation_steps >= 0) || 
              (total_right_encoder_count <= target_right_motor_rotation_steps && target_right_motor_rotation_steps < 0)))
         {
+            std::cout << "Done: " << total_left_encoder_count << " & " << total_right_encoder_count << std::endl;
             // Disable motors
             set_motor_speed(MOTOR_LEFT, 0);
             set_motor_speed(MOTOR_RIGHT, 0);
@@ -173,8 +172,11 @@ void motor_action_tracking(bool &motor_correction, int64_t total_left_encoder_co
     else if (motor_action.read())
     {
         // Store final rotation count
-        target_left_motor_rotation_steps = total_left_encoder_count + left_encoder_rotation_demand.read();
-        target_right_motor_rotation_steps = total_right_encoder_count + right_encoder_rotation_demand.read();
+        int64_t left_demand = left_encoder_rotation_demand.read();
+        int64_t right_demand = right_encoder_rotation_demand.read();
+
+        target_left_motor_rotation_steps = 100000;//total_left_encoder_count + left_demand;
+        target_right_motor_rotation_steps = 100000;//total_right_encoder_count + right_demand;
 
         // Store set rotation speed factor locally
         temp_left_motor_set_speed = left_motor_set_speed.read();

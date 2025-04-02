@@ -146,6 +146,8 @@ int main()
 
         // Main loop iteration count
         count++;
+
+        //sleep_ms(1);
     }
 
     // Ensure motors are stopped
