@@ -32,7 +32,7 @@ void update_encoder_count(int64_t &left_encoder_count, int64_t &right_encoder_co
     int32_t new_left_count = quadrature_encoder_get_count(pio_left, sm_left);
     int32_t new_right_count = -quadrature_encoder_get_count(pio_right, sm_right);
 
-    printf("counts: %i and %i\n", new_left_count, new_right_count);
+    //printf("counts: %i and %i\n", new_left_count, new_right_count);
 
     // Left_Motor
     // Detect overflow or underflow

@@ -86,6 +86,18 @@ void define_gpio() {
     printf("GPIO configured\n");
 
     // Setup PWM
+    // Set GPIO Mode
+    gpio_set_function(AIN1, GPIO_FUNC_SIO);
+    gpio_set_function(AIN2, GPIO_FUNC_SIO);
+    gpio_set_function(BIN1, GPIO_FUNC_SIO);
+    gpio_set_function(BIN2, GPIO_FUNC_SIO);
+
+    // Set HIGH to brake
+    gpio_put(AIN1, 1);
+    gpio_put(AIN2, 1);
+    gpio_put(BIN1, 1);
+    gpio_put(BIN2, 1);
+
     // Set PWM frequency
     uint AIN1_SLICE = pwm_gpio_to_slice_num(AIN1); 
     uint AIN2_SLICE = pwm_gpio_to_slice_num(AIN2);
@@ -95,16 +107,12 @@ void define_gpio() {
     pwm_config config = pwm_get_default_config();
     pwm_config_set_clkdiv(&config, PWM_CLOCK_DIVIDER); // Adjust clock divisor
     pwm_config_set_wrap(&config, PWM_CLOCK_TOP);  // Sets the PWM frequency
-
-    // Initialize
-    pwm_init(AIN1_SLICE, &config, true);
-    pwm_init(AIN2_SLICE, &config, true);
-    pwm_init(BIN1_SLICE, &config, true);
-    pwm_init(BIN2_SLICE, &config, true);
-    pwm_set_chan_level(AIN1_SLICE, pwm_gpio_to_channel(AIN1), 0);
-    pwm_set_chan_level(AIN2_SLICE, pwm_gpio_to_channel(AIN2), 0);
-    pwm_set_chan_level(BIN1_SLICE, pwm_gpio_to_channel(BIN1), 0);
-    pwm_set_chan_level(BIN2_SLICE, pwm_gpio_to_channel(BIN2), 0);
+    
+    // Initialize PWM
+    pwm_init(AIN1_SLICE, &config, false);
+    pwm_init(AIN2_SLICE, &config, false);
+    pwm_init(BIN1_SLICE, &config, false);
+    pwm_init(BIN2_SLICE, &config, false);
 }
 
 void configure_i2c()

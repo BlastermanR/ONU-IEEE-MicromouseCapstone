@@ -16,8 +16,8 @@
 
 // Clock
 #define CLOCK_SPEED 125000000
-#define PWM_CLOCK_DIVIDER 4.0
-#define PWM_CLOCK_TOP 25000
+#define PWM_CLOCK_DIVIDER 1.0
+#define PWM_CLOCK_TOP 4095
 
 // I2C Definitions
 #define I2C_PORT i2c0

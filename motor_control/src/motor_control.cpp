@@ -91,42 +91,72 @@ void set_motor_speed(uint8_t MOTOR_ID, float speed)
     // Clamp input to the range [-1, 1]
     speed = std::clamp(speed, -1.0f, 1.0f);
 
-    float duty1;
-    float duty2;
-    if (speed < 0) 
-    {
-        // Backward movement
-        duty1 = std::abs(speed);
-        duty2 = 0;
-    } 
-    else if (speed > 0) 
-    {
-        // Forward movement
-        duty1 = 0;
-        duty2 = std::abs(speed);
-    } 
-    else 
-    {
-        // Brake
-        duty1 = 1;  
-        duty2 = 1;
-    }
+    // Get Slices
+    uint AIN1_SLICE = pwm_gpio_to_slice_num(AIN1);
+    uint AIN2_SLICE = pwm_gpio_to_slice_num(AIN2);
+    uint BIN1_SLICE = pwm_gpio_to_slice_num(BIN1);
+    uint BIN2_SLICE = pwm_gpio_to_slice_num(BIN2);
 
-    // Set PWM
-    switch(MOTOR_ID)
+    if (speed == 0)
     {
-        case 0: 
+        // Disable PWM and Enable Braking
+        switch(MOTOR_ID)
         {
-            pwm_set_chan_level(pwm_gpio_to_slice_num(AIN1), pwm_gpio_to_channel(AIN1), duty1 * PWM_CLOCK_TOP);
-            pwm_set_chan_level(pwm_gpio_to_slice_num(AIN2), pwm_gpio_to_channel(AIN2), duty2 * PWM_CLOCK_TOP);
-        }
-        case 1:
+            case MOTOR_LEFT: 
+            {
+                pwm_set_enabled(AIN1_SLICE, false);
+                pwm_set_enabled(AIN2_SLICE, false);
+                gpio_set_function(AIN1, GPIO_FUNC_SIO);
+                gpio_set_function(AIN2, GPIO_FUNC_SIO);
+                gpio_put(AIN1, 1);
+                gpio_put(AIN2, 1);
+                break;
+            }
+            case MOTOR_RIGHT:
+            {
+                pwm_set_enabled(BIN1_SLICE, false);
+                pwm_set_enabled(BIN2_SLICE, false);
+                gpio_set_function(BIN1, GPIO_FUNC_SIO);
+                gpio_set_function(BIN2, GPIO_FUNC_SIO);
+                gpio_put(BIN1, 1);
+                gpio_put(BIN2, 1);
+                break;
+            }
+            default: {}
+        };
+    }    
+    else
+    {
+        // Set Duty Cycle
+        float duty1 = (speed < 0) ? std::abs(speed) : 0;
+        float duty2 = (speed > 0) ? std::abs(speed) : 0;
+
+        // Enable / Set PWM
+        switch(MOTOR_ID)
         {
-            pwm_set_chan_level(pwm_gpio_to_slice_num(BIN1), pwm_gpio_to_channel(BIN1), duty1 * PWM_CLOCK_TOP);
-            pwm_set_chan_level(pwm_gpio_to_slice_num(BIN2), pwm_gpio_to_channel(BIN2), duty2 * PWM_CLOCK_TOP);
-        }
-        default: {}
-    };
+            case MOTOR_LEFT: 
+            {
+                gpio_set_function(AIN1, GPIO_FUNC_PWM);
+                gpio_set_function(AIN2, GPIO_FUNC_PWM);
+                pwm_set_enabled(AIN1_SLICE, true);
+                pwm_set_enabled(AIN2_SLICE, true);
+                pwm_set_chan_level(AIN1_SLICE, pwm_gpio_to_channel(AIN1), duty1 * PWM_CLOCK_TOP);
+                pwm_set_chan_level(AIN2_SLICE, pwm_gpio_to_channel(AIN2), duty2 * PWM_CLOCK_TOP);
+                break;
+            }
+            case MOTOR_RIGHT:
+            {
+                gpio_set_function(BIN1, GPIO_FUNC_PWM);
+                gpio_set_function(BIN2, GPIO_FUNC_PWM);
+                pwm_set_enabled(BIN1_SLICE, true);
+                pwm_set_enabled(BIN2_SLICE, true);
+                pwm_set_chan_level(BIN1_SLICE, pwm_gpio_to_channel(BIN1), duty1 * PWM_CLOCK_TOP);
+                pwm_set_chan_level(BIN2_SLICE, pwm_gpio_to_channel(BIN2), duty2 * PWM_CLOCK_TOP);
+                break;
+            }
+            default: {}
+        };
+    }
 }
 
 void motor_action_tracking(bool &motor_correction)
