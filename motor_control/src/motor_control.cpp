@@ -191,6 +191,9 @@ void update_velocity()
 // Tracks Motor Speed
 float speed_pid(uint8_t motor_id, bool reset)
 {
+    // Normalization value
+    static constexpr float MAX_ERROR = 1000.f;  // Proportional gain
+
     // PID constants (tune these values)
     static constexpr float Kp_v = 2.0f;  // Proportional gain
     static constexpr float Ki_v = 0.2f;  // Integral gain
@@ -270,6 +273,7 @@ float speed_pid(uint8_t motor_id, bool reset)
     }
 
     // Return the PID output, which will be used to adjust the motor PWM
+    output = std::clamp(output / MAX_ERROR, -1.0f, 1.0f);
     return output;
 }
 
@@ -310,27 +314,30 @@ void motor_action_tracking(bool &motor_correction)
             int64_t min_distance_remaining = std::min(left_distance_remaining, right_distance_remaining);
 
             // Calculate Deceleration Threshold
-            float deceleration_Threshold_mm = (target_velocity_left * target_velocity_left) / (2 * ACCELERATION_STEP);
+            float current_velocity_left = current_velocity_left_mms_shared.read();
+            float current_velocity_right = current_velocity_right_mms_shared.read();
+            float deceleration_threshold_left_mm = current_velocity_left * current_velocity_left / (2 * 1000 * ACCELERATION_STEP * ENCODER_TIMER_MS);
+            float deceleration_threshold_right_mm = current_velocity_right * current_velocity_right / (2 * 1000 * ACCELERATION_STEP * ENCODER_TIMER_MS);
+
+            const float TIMER_ACCELERATION_STEP = ACCELERATION_STEP * ENCODER_TIMER_MS;
 
             // Acceleration phase: Increase speed until desired velocity is reached
-            if (target_velocity_left < desired_velocity_left && min_distance_remaining > deceleration_Threshold_mm) 
+            if (target_velocity_left < desired_velocity_left && min_distance_remaining > deceleration_threshold_left_mm) 
             {
-                target_velocity_left = std::min(target_velocity_left + ACCELERATION_STEP, desired_velocity_left);
+                target_velocity_left = std::min(target_velocity_left + TIMER_ACCELERATION_STEP, desired_velocity_left);
             }
-            else if (min_distance_remaining <= deceleration_Threshold_mm) 
+            else if (min_distance_remaining <= deceleration_threshold_left_mm) 
             {
-                float decel_factor = static_cast<float>(min_distance_remaining) / deceleration_Threshold_mm;
-                target_velocity_left = std::max(target_velocity_left * decel_factor, 5.0f);
+                target_velocity_left = std::max(target_velocity_left - TIMER_ACCELERATION_STEP, 5.0f);
             }
 
-            if (target_velocity_right < desired_velocity_right && min_distance_remaining > deceleration_Threshold_mm) 
+            if (target_velocity_right < desired_velocity_right && min_distance_remaining > deceleration_threshold_right_mm) 
             {
-                target_velocity_right = std::min(target_velocity_right + ACCELERATION_STEP, desired_velocity_right);
+                target_velocity_right = std::min(target_velocity_right + TIMER_ACCELERATION_STEP, desired_velocity_right);
             }
-            else if (min_distance_remaining <= deceleration_Threshold_mm) 
+            else if (min_distance_remaining <= deceleration_threshold_right_mm) 
             {
-                float decel_factor = static_cast<float>(min_distance_remaining) / deceleration_Threshold_mm;
-                target_velocity_right = std::max(target_velocity_right * decel_factor, 5.0f);
+                target_velocity_right = std::max(target_velocity_right - TIMER_ACCELERATION_STEP, 5.0f);
             }
 
             target_velocity_left_mms_shared.write(target_velocity_left);
@@ -339,6 +346,8 @@ void motor_action_tracking(bool &motor_correction)
             // Compute PID control output for velocity for each motor independently
             float left_pwm = speed_pid(MOTOR_LEFT, false);
             float right_pwm = speed_pid(MOTOR_RIGHT, false);
+
+            std::cout << "PWM: " << left_pwm << " & " << right_pwm << std::endl;
 
             // Calculate path correction if needed
             if (motor_correction)

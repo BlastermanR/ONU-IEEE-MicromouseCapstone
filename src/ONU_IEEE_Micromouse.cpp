@@ -67,9 +67,6 @@ int main()
         return -1;
     }
 
-    // Print I2C Devices
-    i2c_scan();
-
     // Launch 2nd Core --> Handles time non critical tasks
     printf("Core 1: Launching assistant process\n");
     multicore_launch_core1(testing_process);

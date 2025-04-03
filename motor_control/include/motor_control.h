@@ -22,7 +22,7 @@
 #define CORRECTION_DEADBAND 1.5
 
 // Acceleration
-#define ACCELERATION_STEP 5.0f  // mm/s per cycle
+#define ACCELERATION_STEP 0.1f  // mm/ms^2
 
 // Implement PID for tracking correction needed
 // Needs to: 

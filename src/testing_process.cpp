@@ -4,7 +4,7 @@ void testing_process()
 {
     Robot robot = Robot();
     
-    desired_velocity_left_mms_shared.write(200); // 20 cm/s target
+    desired_velocity_left_mms_shared.write(200); 
     desired_velocity_right_mms_shared.write(200);
 
     bool run = false;
