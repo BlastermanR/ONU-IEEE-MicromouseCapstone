@@ -107,7 +107,7 @@ void define_gpio() {
     pwm_config config = pwm_get_default_config();
     pwm_config_set_clkdiv(&config, PWM_CLOCK_DIVIDER); // Adjust clock divisor
     pwm_config_set_wrap(&config, PWM_CLOCK_TOP);  // Sets the PWM frequency
-    
+
     // Initialize PWM
     pwm_init(AIN1_SLICE, &config, false);
     pwm_init(AIN2_SLICE, &config, false);
@@ -192,7 +192,7 @@ void i2c_scan() {
 
 bool is_i2c_valid(uint8_t address) 
 {
-    sleep_ms(1);
+    sleep_ms(3);
     uint8_t dummy;
     int ret = i2c_read_blocking(I2C_PORT, address, &dummy, 1, false);
     if (ret >= 0) { return  true; }

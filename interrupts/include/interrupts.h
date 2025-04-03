@@ -13,7 +13,7 @@
 
 // Global Declarations
 #define GYRO_TIMER_MS 10
-#define ENCODER_TIMER_MS 3
+#define ENCODER_TIMER_MS 5
 #define CORRECTION_TIMER_MS 15
 
 // Flags
