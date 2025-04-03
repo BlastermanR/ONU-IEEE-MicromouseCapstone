@@ -6,6 +6,7 @@ volatile int64_t target_left_motor_rotation_steps = 0;
 volatile int64_t target_right_motor_rotation_steps = 0;
 float temp_left_motor_set_speed = 0;
 float temp_right_motor_set_speed = 0;
+bool turning = false;
 
 // Calculate correction to ensure robot travels on straight path
 float compute_correction()
@@ -175,21 +176,20 @@ void update_velocity()
     int64_t left_diff = left_count - old_left_count;
     int64_t right_diff = right_count - old_right_count;
 
-    // Average the difference to account for both wheels
-    int64_t avg_diff = (left_diff + right_diff) / 2;
-
     // Convert encoder count difference to velocity in mm/s
     // Formula: velocity (mm/s) = (avg_diff * WHEEL_CIRCUMFERENCE_MM * 1000) / (ENCODER_NUM_LINES_ROTATION * VELOCITY_TIMER_MS)
-    float velocity = (float)(avg_diff * WHEEL_CIRCUMFERENCE_MM * 1000) / (ENCODER_NUM_LINES_ROTATION * VELOCITY_TIMER_MS);
+    float velocity_left = (float)(left_diff * WHEEL_CIRCUMFERENCE_MM * 1000) / (ENCODER_NUM_LINES_ROTATION * VELOCITY_TIMER_MS);
+    float velocity_right = (float)(right_diff * WHEEL_CIRCUMFERENCE_MM * 1000) / (ENCODER_NUM_LINES_ROTATION * VELOCITY_TIMER_MS);
 
-    current_velocity_mms_shared.write(velocity);
+    current_velocity_left_mms_shared.write(velocity_left);
+    current_velocity_right_mms_shared.write(velocity_right);
 
     old_left_count = left_count;
     old_right_count = right_count;
 }
 
 // Tracks Motor Speed
-float speed_pid()
+float speed_pid(uint8_t motor_id, bool reset)
 {
     // PID constants (tune these values)
     static constexpr float Kp_v = 2.0f;  // Proportional gain
@@ -197,12 +197,38 @@ float speed_pid()
     static constexpr float Kd_v = 0.05f; // Derivative gain
 
     // Static variables for maintaining state across function calls
-    static float previous_error = 0.0f;
-    static float integral = 0.0f;
+    static float previous_error_left = 0.0f;
+    static float integral_left = 0.0f;
+    static float previous_error_right = 0.0f;
+    static float integral_right = 0.0f;
 
-    // Get current velocity
-    float current_velocity_mms = current_velocity_mms_shared.read();
-    float target_velocity_mms = target_velocity_mms_shared.read();
+    if (reset)
+    {
+        if (motor_id == MOTOR_LEFT)
+        {
+            previous_error_left = 0.0f;
+            integral_left = 0.0f;
+        }
+        else
+        {
+            previous_error_right = 0.0f;
+            integral_right = 0.0f; 
+        } 
+    }
+
+    // Get current & target velocity for the specific motor (left or right)
+    float current_velocity_mms = 0.0f;
+    float target_velocity_mms = 0.0f;
+    if (motor_id == 0) // Left motor
+    {
+        current_velocity_mms = current_velocity_left_mms_shared.read();
+        target_velocity_mms = target_velocity_left_mms_shared.read();
+    }
+    else if (motor_id == 1) // Right motor
+    {
+        current_velocity_mms = current_velocity_right_mms_shared.read();
+        target_velocity_mms = target_velocity_right_mms_shared.read();
+    }
 
     // Calculate error (difference between target and current speed)
     float error = target_velocity_mms - current_velocity_mms;
@@ -211,22 +237,37 @@ float speed_pid()
     float P_term = Kp_v * error;
 
     // Integral term (accumulates error over time)
-    integral += error;
-
-    // Prevent integral windup (clamp to prevent excessive accumulation)
     constexpr float INTEGRAL_LIMIT = 100.0f; // Adjust based on system behavior
-    integral = std::clamp(integral, -INTEGRAL_LIMIT, INTEGRAL_LIMIT);
+    if (motor_id == 0) // Left motor
+    {
+        integral_left += error;
+        // Prevent integral windup (clamp to prevent excessive accumulation)
+        integral_left = std::clamp(integral_left, -INTEGRAL_LIMIT, INTEGRAL_LIMIT);
+    }
+    else // Right motor
+    {
+        integral_right += error;
+        // Prevent integral windup (clamp to prevent excessive accumulation)
+        integral_right = std::clamp(integral_right, -INTEGRAL_LIMIT, INTEGRAL_LIMIT);
+    }
 
-    float I_term = Ki_v * integral;
+    float I_term = Ki_v * (motor_id == 0 ? integral_left : integral_right);
 
     // Derivative term (rate of error change)
-    float D_term = Kd_v * (error - previous_error);
+    float D_term = Kd_v * (error - (motor_id == 0 ? previous_error_left : previous_error_right));
 
     // Compute the PID output
     float output = P_term + I_term + D_term;
 
     // Update previous error
-    previous_error = error;
+    if (motor_id == 0)
+    {
+        previous_error_left = error;
+    }
+    else
+    {
+        previous_error_right = error;
+    }
 
     // Return the PID output, which will be used to adjust the motor PWM
     return output;
@@ -235,8 +276,9 @@ float speed_pid()
 // Tracks Motor Movements
 void motor_action_tracking(bool &motor_correction)
 {
-    int64_t total_left_encoder_count = right_encoder_count_shared.read(); // Don't know why but this is needed
-    int64_t total_right_encoder_count = left_encoder_count_shared.read();
+    int64_t total_left_encoder_count = left_encoder_count_shared.read();
+    int64_t total_right_encoder_count = right_encoder_count_shared.read();
+
     if (motor_action_in_progress)
     {       
         if (((total_left_encoder_count >= target_left_motor_rotation_steps && target_left_motor_rotation_steps >= 0) || 
@@ -255,35 +297,48 @@ void motor_action_tracking(bool &motor_correction)
         }
         else
         {
-            // Read current target/desired velocity (mm/s)
-            float target_velocity = target_velocity_mms_shared.read();
-            float desired_velocity = desired_velocity_mms_shared.read();   
             // Smooth Acceleration / Deceleration
+            // Read current target/desired velocity (mm/s)
+            float target_velocity_left = target_velocity_left_mms_shared.read();
+            float target_velocity_right = target_velocity_right_mms_shared.read();
+            float desired_velocity_left = desired_velocity_left_mms_shared.read();
+            float desired_velocity_right = desired_velocity_right_mms_shared.read();   
+
             // Check distance remaining
             int64_t left_distance_remaining = abs(target_left_motor_rotation_steps - total_left_encoder_count);
             int64_t right_distance_remaining = abs(target_right_motor_rotation_steps - total_right_encoder_count);
             int64_t min_distance_remaining = std::min(left_distance_remaining, right_distance_remaining);
 
-            // Calculate Decleration Thershold
-            float deceleration_Threshold_mm = (target_velocity * target_velocity) / (2 * ACCELERATION_STEP); 
+            // Calculate Deceleration Threshold
+            float deceleration_Threshold_mm = (target_velocity_left * target_velocity_left) / (2 * ACCELERATION_STEP);
 
             // Acceleration phase: Increase speed until desired velocity is reached
-            if (target_velocity < desired_velocity && min_distance_remaining > deceleration_Threshold_mm) 
+            if (target_velocity_left < desired_velocity_left && min_distance_remaining > deceleration_Threshold_mm) 
             {
-                target_velocity = std::min(target_velocity + ACCELERATION_STEP, desired_velocity);
+                target_velocity_left = std::min(target_velocity_left + ACCELERATION_STEP, desired_velocity_left);
             }
-            // Deceleration phase: Reduce speed when nearing the target
             else if (min_distance_remaining <= deceleration_Threshold_mm) 
             {
                 float decel_factor = static_cast<float>(min_distance_remaining) / deceleration_Threshold_mm;
-                target_velocity = std::max(target_velocity * decel_factor, 5.0f); // Ensure it never drops too low
+                target_velocity_left = std::max(target_velocity_left * decel_factor, 5.0f);
             }
-            // Write target velocity
-            target_velocity_mms_shared.write(target_velocity);
 
-            // Compute PID control output for velocity
-            float left_pwm = speed_pid();
-            float right_pwm = speed_pid();
+            if (target_velocity_right < desired_velocity_right && min_distance_remaining > deceleration_Threshold_mm) 
+            {
+                target_velocity_right = std::min(target_velocity_right + ACCELERATION_STEP, desired_velocity_right);
+            }
+            else if (min_distance_remaining <= deceleration_Threshold_mm) 
+            {
+                float decel_factor = static_cast<float>(min_distance_remaining) / deceleration_Threshold_mm;
+                target_velocity_right = std::max(target_velocity_right * decel_factor, 5.0f);
+            }
+
+            target_velocity_left_mms_shared.write(target_velocity_left);
+            target_velocity_right_mms_shared.write(target_velocity_right);
+
+            // Compute PID control output for velocity for each motor independently
+            float left_pwm = speed_pid(MOTOR_LEFT, false);
+            float right_pwm = speed_pid(MOTOR_RIGHT, false);
 
             // Calculate path correction if needed
             if (motor_correction)
@@ -313,11 +368,12 @@ void motor_action_tracking(bool &motor_correction)
         target_right_motor_rotation_steps = total_right_encoder_count + right_demand;
 
         // Set target speed to 0
-        target_velocity_mms_shared.write(0);
+        target_velocity_left_mms_shared.write(0);
+        target_velocity_right_mms_shared.write(0);
 
         // Compute initial motor speed using PID
-        float left_motor_pwm = speed_pid();
-        float right_motor_pwm = speed_pid();
+        float left_motor_pwm = speed_pid(MOTOR_LEFT, true);
+        float right_motor_pwm = speed_pid(MOTOR_RIGHT, false);
 
         // Activate motors with PID-controlled speed
         set_motor_speed(MOTOR_LEFT, left_motor_pwm);

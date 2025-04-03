@@ -92,9 +92,16 @@ extern SharedDataMutex<int32_t> right_encoder_rotation_demand;
 // Motor
 extern SharedDataMutex<bool> motor_action; // Command to start motor action / signal end
 extern SharedDataMutex<bool> calculate_corrections; // Signal for main process to correct motor movement durring linear travel
-extern SharedDataMutex<float> current_velocity_mms_shared;
-extern SharedDataMutex<float> target_velocity_mms_shared;
-extern SharedDataMutex<float> desired_velocity_mms_shared;
+// Current V
+extern SharedDataMutex<float> current_velocity_left_mms_shared;
+extern SharedDataMutex<float> current_velocity_right_mms_shared;
+// Set V
+extern SharedDataMutex<float> target_velocity_left_mms_shared;
+extern SharedDataMutex<float> target_velocity_right_mms_shared;
+// Desired V
+extern SharedDataMutex<float> desired_velocity_left_mms_shared;
+extern SharedDataMutex<float> desired_velocity_right_mms_shared;
+// Encoder Count
 extern SharedDataMutex<int32_t> left_encoder_count_shared;
 extern SharedDataMutex<int32_t> right_encoder_count_shared;
 

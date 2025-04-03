@@ -42,7 +42,7 @@ void set_motor_speed(uint8_t MOTOR_ID, float speed);
 void update_velocity();
 
 // Calculates Updated Motor Speed
-float speed_pid();
+float speed_pid(uint8_t motor_id, bool reset);
 
 // Used by main process to track progress on a motor action
 void motor_action_tracking(bool &motor_correction);
