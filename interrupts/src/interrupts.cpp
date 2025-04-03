@@ -24,9 +24,9 @@ void ir_sensor_irq_handler(uint gpio, uint32_t events)
 { 
     switch(gpio) 
     {
-        case S1_GPIO: {sw1_on_flag = true; break;}
-        case S2_GPIO: {sw1_on_flag = true; break;}
-        case S3_GPIO: {sw1_on_flag = true; break;}
+        case S1_GPIO: {ir_sensor_ready_flag_1 = true; break;}
+        case S2_GPIO: {ir_sensor_ready_flag_2 = true; break;}
+        case S3_GPIO: {ir_sensor_ready_flag_3 = true; break;}
         default:      {}
     }
 }
@@ -66,9 +66,9 @@ void switch_irq_handler(uint gpio, uint32_t events)
 // Define/enable inturrupts
 void setup_interrupts() {
     // Enable IR sensor inturrupts
-    gpio_set_irq_enabled_with_callback(S1_GPIO, GPIO_IRQ_LEVEL_LOW , true, &ir_sensor_irq_handler);
-    gpio_set_irq_enabled_with_callback(S2_GPIO, GPIO_IRQ_LEVEL_LOW , true, &ir_sensor_irq_handler);
-    gpio_set_irq_enabled_with_callback(S3_GPIO, GPIO_IRQ_LEVEL_LOW , true, &ir_sensor_irq_handler);
+    gpio_set_irq_enabled_with_callback(S1_GPIO, GPIO_IRQ_EDGE_FALL , true, &ir_sensor_irq_handler);
+    gpio_set_irq_enabled_with_callback(S2_GPIO, GPIO_IRQ_EDGE_FALL , true, &ir_sensor_irq_handler);
+    gpio_set_irq_enabled_with_callback(S3_GPIO, GPIO_IRQ_EDGE_FALL , true, &ir_sensor_irq_handler);
 
     // Enable Gyro Sensor Inturrupts
     add_repeating_timer_ms(GYRO_TIMER_MS, gyro_sensor_irq_handler, nullptr, &gyro_timer);

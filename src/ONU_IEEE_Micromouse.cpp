@@ -60,26 +60,6 @@ int main()
     // Define Interrupts
     configure_i2c();
 
-    //TEMP
-    gpio_put(S1_XSHUT, 1);
-    gpio_put(S2_XSHUT, 0);
-    gpio_put(S3_XSHUT, 0);
-
-    i2c_scan();
-    
-    uint16_t sensor_id;
-    uint8_t status1 = VL53L4CD_GetSensorId(0x29, &sensor_id);
-	if(status1 || (sensor_id != 0xEBAA))
-	{
-		printf("VL53L4CD not detected at requested address\n");
-	}
-    else
-    {
-        printf("VL53L4CD found???\n");
-    }
-
-    //i2c_scan();
-
     // Set VL53L4CD IR Sensor Addresses, Inititate Sensors
     if (!configure_ir_address() || !VL53L4CD_setup()) 
     {
