@@ -13,6 +13,7 @@
 
 // Global Declarations
 #define GYRO_TIMER_MS 10
+#define ENCODER_TIMER_MS 5
 #define CORRECTION_TIMER_MS 15
 
 // Flags
@@ -24,6 +25,7 @@ extern bool sw1_on_flag;
 extern bool sw2_on_flag;
 extern bool sw3_on_flag;
 extern bool motor_correct_flag;
+extern bool encoder_read_flag;
 
 // Timers
 extern struct repeating_timer correction_timer;
@@ -56,5 +58,8 @@ void set_correction_timer(bool run_timer);
 
 // Handler for calculating correction
 bool correction_irq_handler(struct repeating_timer *t);
+
+// Handle encoder reading
+bool encoder_irq_handler(struct repeating_timer *t);
 
 #endif 

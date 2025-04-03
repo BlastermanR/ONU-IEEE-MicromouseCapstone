@@ -131,6 +131,8 @@ void set_motor_speed(uint8_t MOTOR_ID, float speed)
 
 void motor_action_tracking(bool &motor_correction, int64_t total_left_encoder_count, int64_t total_right_encoder_count)
 {
+    total_left_encoder_count = right_encoder_count_shared.read();
+    total_right_encoder_count = left_encoder_count_shared.read();
     if (motor_action_in_progress)
     {       
         if (((total_left_encoder_count >= target_left_motor_rotation_steps && target_left_motor_rotation_steps >= 0) || 
@@ -155,13 +157,9 @@ void motor_action_tracking(bool &motor_correction, int64_t total_left_encoder_co
             float correction = compute_correction();
 
             // Set motor
-            set_motor_speed(MOTOR_LEFT, temp_left_motor_set_speed - correction);
-            set_motor_speed(MOTOR_RIGHT, temp_right_motor_set_speed + correction);
-
-            // Adjust target rotations based on correction over time
-            float scaling_factor = 0.1;  // Adjust this based on testing
-            target_left_motor_rotation_steps += correction * scaling_factor * abs(target_left_motor_rotation_steps - total_left_encoder_count);
-            target_right_motor_rotation_steps -= correction * scaling_factor * abs(target_right_motor_rotation_steps - total_right_encoder_count);
+            float scaler = 0.5;
+            set_motor_speed(MOTOR_LEFT, temp_left_motor_set_speed - (correction / temp_left_motor_set_speed) * scaler);
+            set_motor_speed(MOTOR_RIGHT, temp_right_motor_set_speed + (correction / temp_right_motor_set_speed) * scaler);
 
             // Reset flag
             motor_correction = false;

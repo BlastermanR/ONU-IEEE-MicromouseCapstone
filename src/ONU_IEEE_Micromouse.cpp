@@ -57,8 +57,6 @@ int main()
     sw2.write(gpio_get(SW2));
     sw3.write(gpio_get(SW3));
 
-    printf("SW1: %i", gpio_get(SW1));
-
     // Define Interrupts
     configure_i2c();
 
@@ -85,9 +83,14 @@ int main()
     // Loop
     printf("Core 1: Entering Time Sensitive Mode, Printing Limited\n");
 
-    // Status Vars
+    // Status Var
     int status = 0;
-    uint64_t count = 0;
+
+    // Local global variables for motor actions
+    bool motor_action_in_progress = false;
+    int64_t target_left_motor_rotation_steps = 0;
+    int64_t target_right_motor_rotation_steps = 0;
+    int64_t left_encoder_count, right_encoder_count;
 
     while(!status || control_process_exit_signal.read()) 
     {
@@ -136,24 +139,25 @@ int main()
         if (sw3_on_flag) {sw3.write(true);}
         else {sw3.write(false);}
 
+
         // Update motor speed/rotations/corrections
+        if (encoder_read_flag)
+        {
+            update_encoder_count(left_encoder_count, right_encoder_count);
+            left_encoder_count_shared.write(left_encoder_count);
+            right_encoder_count_shared.write(right_encoder_count);
+            sleep_ms(1);
+            motor_action_tracking(motor_correct_flag, left_encoder_count, right_encoder_count); // Motor Logic
+            encoder_read_flag = false;
+        }
+        
         set_correction_timer(calculate_corrections.read());
-        int64_t left_encoder_count, right_encoder_count;
-        update_encoder_count(left_encoder_count, right_encoder_count);
-        motor_action_tracking(motor_correct_flag, left_encoder_count, right_encoder_count);
-        left_encoder_count_shared.write(left_encoder_count);
-        right_encoder_count_shared.write(right_encoder_count);
-
-        // Main loop iteration count
-        count++;
-
-        //sleep_ms(1);
     }
 
     // Ensure motors are stopped
     set_motor_speed(MOTOR_LEFT, 0);
     set_motor_speed(MOTOR_RIGHT, 0);
 
-    printf("Main process exited with code: %d on iteration: %d\n", status, count);
+    printf("Main process exited with code: %d\n", status);
     return status;
 }

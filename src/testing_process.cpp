@@ -1,21 +1,7 @@
 #include <testing_process.h>
 
-void wait_test(uint seconds)
-{
-    printf("Waiting..");
-    for (int i = seconds / 1000; i > 0; i--) 
-    {
-        printf("%i..", i);
-        sleep_ms(1000);
-    }
-    printf("\n");
-}
-
 void testing_process()
 {
-    // Timer To Connect
-    wait_test(5000);
-    
     Robot robot = Robot();
     
     left_motor_set_speed.write(0.1);

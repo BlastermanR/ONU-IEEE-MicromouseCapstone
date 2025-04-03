@@ -20,5 +20,5 @@ SharedDataMutex<bool> motor_action(false);
 SharedDataMutex<bool> calculate_corrections(false);
 SharedDataMutex<float> left_motor_set_speed(0.0);
 SharedDataMutex<float> right_motor_set_speed(0.0);
-SharedDataMutex<int64_t> left_encoder_count_shared(0);
-SharedDataMutex<int64_t> right_encoder_count_shared(0);
+SharedDataMutex<int32_t> left_encoder_count_shared(0);
+SharedDataMutex<int32_t> right_encoder_count_shared(0);

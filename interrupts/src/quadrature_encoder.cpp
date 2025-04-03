@@ -11,18 +11,29 @@ int32_t last_right_encoder_count = 0;
 // Create a function to iitialize PIO for quadrature decoding
 void init_quadrature_encoders()
 {
-    pio_add_program(pio_left, &quadrature_encoder_program);
+    int offset;
+    offset = pio_add_program(pio_left, &quadrature_encoder_program);
     quadrature_encoder_program_init(pio_left, sm_left, CBL_LOGIC, 0);
 
-    pio_add_program(pio_right, &quadrature_encoder_program);
+    if (offset == -1) {
+        printf("Failed to load left PIO program!\n");
+    }
+
+    offset = pio_add_program(pio_right, &quadrature_encoder_program);
     quadrature_encoder_program_init(pio_right, sm_right, CBR_LOGIC, 0);
+
+    if (offset == -1) {
+        printf("Failed to load left PIO program!\n");
+    }
 }
 
 void update_encoder_count(int64_t &left_encoder_count, int64_t &right_encoder_count) 
 {
     int32_t new_left_count = quadrature_encoder_get_count(pio_left, sm_left);
     int32_t new_right_count = -quadrature_encoder_get_count(pio_right, sm_right);
-    
+
+    printf("counts: %i and %i\n", new_left_count, new_right_count);
+
     // Left_Motor
     // Detect overflow or underflow
     int32_t diff = new_left_count - last_left_encoder_count;

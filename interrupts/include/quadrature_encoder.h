@@ -1,6 +1,7 @@
 #include <pico/stdlib.h>
 #include <hardware/pio.h>
 #include <platform_config.h>
+#include <cstdio>
 
 // Initializes PIO
 void init_quadrature_encoders();

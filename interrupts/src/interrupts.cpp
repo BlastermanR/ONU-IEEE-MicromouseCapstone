@@ -9,10 +9,12 @@ bool sw1_on_flag = false;
 bool sw2_on_flag = false;
 bool sw3_on_flag = false;
 bool motor_correct_flag = false;
+bool encoder_read_flag = false;
 
 // Timers
 struct repeating_timer correction_timer;
 struct repeating_timer gyro_timer;
+struct repeating_timer encoder_timer;
 
 // Encoder PWM data
 int64_t rotation_count[2] = {0};
@@ -70,7 +72,8 @@ void setup_interrupts() {
 
     // Enable Gyro Sensor Inturrupts
     add_repeating_timer_ms(GYRO_TIMER_MS, gyro_sensor_irq_handler, nullptr, &gyro_timer);
-
+    add_repeating_timer_ms(ENCODER_TIMER_MS, encoder_irq_handler, nullptr, &encoder_timer);
+    
     // Enable Switch Inturrupts
     gpio_set_irq_enabled_with_callback(SW1, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &switch_irq_handler);
     gpio_set_irq_enabled_with_callback(SW2, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &switch_irq_handler);
@@ -100,5 +103,11 @@ void set_correction_timer(bool run_timer)
 bool correction_irq_handler(struct repeating_timer *t)
 {
     motor_correct_flag = true;
+    return true;
+}
+
+bool encoder_irq_handler(struct repeating_timer *t)
+{
+    encoder_read_flag = true;
     return true;
 }
