@@ -118,12 +118,19 @@ void configure_i2c()
 bool configure_ir_address()
 {
     VL53L4CD_Version_t* software_info;
-    VL53L4CD_GetSWVersion(software_info);
-    printf("VL53L4CD Driver Info:");
-    printf("Major Version: %d\n", software_info->major);
-    printf("Minor Version: %d\n", software_info->minor);
-    printf("Build Version: %d\n", software_info->build);
-    printf("Revision: %d\n", software_info->revision);
+    int status = VL53L4CD_GetSWVersion(software_info);
+    if (status != 0)
+    {
+        printf("Failed to get VL53L4CD Driver Info");
+    }
+    else 
+    {
+        printf("VL53L4CD Driver Info:\n");
+        printf("Major Version: %d\n", software_info->major);
+        printf("Minor Version: %d\n", software_info->minor);
+        printf("Build Version: %d\n", software_info->build);
+        printf("Revision: %d\n", software_info->revision);
+    }
 
     // Lower All Pins
     gpio_put(S1_XSHUT, 0);
@@ -132,30 +139,36 @@ bool configure_ir_address()
 
     // Set Address for each XSHUT Pin
     for(int i = 0; i < VL53L4CD_SENSOR_COUNT; i++) {
-        printf("Setting Sensor %d address\n", i);
+        sleep_ms(1);
+        printf("SETTING SENSOR %d ADDRESS:\n", i);
         gpio_put(IR_XSHUT_PINS[i], 1); // Rasie XSHUT Pin
+
         // Test Connection
-        if(!is_i2c_valid(VL53L4CD_ID) || !is_i2c_valid(VL53L4CD_ADDRESSES[i]))
+        if(!is_i2c_valid(VL53L4CD_ID))
         {
-            printf("No Device at address 0x%02X or 0x%02X\n", VL53L4CD_ID, VL53L4CD_ADDRESSES[i]);
+            printf("    No Device at address 0x%02X\n", VL53L4CD_ID);
             return false;
         }
+        printf("    Setting Sensor %d address is valid!\n", i);
+
         // Attempt to change address if default
         int status = 0;
-        if(is_i2c_valid(VL53L4CD_ID) && VL53L4CD_SetI2CAddress(VL53L4CD_ID, VL53L4CD_ADDRESSES[i]) != 0) 
+        uint16_t sensor_id;
+        if(status = VL53L4CD_SetI2CAddress(VL53L4CD_ID, VL53L4CD_ADDRESSES[i] << 1)) // Shift left because function looks at top 7 bits
         {
-            printf("Failed to change device ID to 0x%02X\n", VL53L4CD_ADDRESSES[i]);
+            printf("    Failed to change device ID to 0x%02X --- %d\n", VL53L4CD_ADDRESSES[i], status);
             return false;
         }
-        gpio_put(IR_XSHUT_PINS[i], 0); // Lower XSHUT Pin
-        printf("Sensor %d address\n", i);
+
+        uint8_t status1 = VL53L4CD_GetSensorId(VL53L4CD_ADDRESSES[i], &sensor_id);
+        if(status1 || (sensor_id != 0xEBAA))
+        {
+            printf("    VL53L4CD not detected at new address\n");
+            return false;
+        }
+
+        printf("    Sensor %d address set!\n", i);
     }
-
-    // Raise All Pins
-    gpio_put(S1_XSHUT, 1);
-    gpio_put(S2_XSHUT, 1);
-    gpio_put(S3_XSHUT, 1);
-
     printf("All sensor addresses changed sucessfully\n");
     return true;
 }
@@ -192,7 +205,7 @@ int read_VL53L4CD(uint8_t address, uint16_t &data)
 bool VL53L4CD_setup()
 {
     // Initialize Sensors
-    printf("Initializing VL53L4CD Sensors");
+    printf("Initializing VL53L4CD Sensors\n");
     int status = 0;
     for(int i = 0; i < VL53L4CD_SENSOR_COUNT; i++)
     {
@@ -200,7 +213,7 @@ bool VL53L4CD_setup()
     }
 	if(status)
 	{
-		printf("VL53L4CD ULDs loading failed\n");
+		printf("VL53L4CD ULDs loading failed with status %d\n", status);
 		return false;
 	}
     printf("VL53L4CD ULDs ready !\n");

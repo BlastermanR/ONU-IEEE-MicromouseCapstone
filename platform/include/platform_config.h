@@ -27,10 +27,10 @@
 #define I2C_SCL 5
 // IR Sensor Addresses
 #define VL53L4CD_SENSOR_COUNT 3
-#define VL53L4CD_ID 0x52
+#define VL53L4CD_ID 0x29
 #define VL53L4CD_1 0x30
-#define VL53L4CD_2 0x31
-#define VL53L4CD_3 0x32
+#define VL53L4CD_2 0x32
+#define VL53L4CD_3 0x34
 extern const uint8_t VL53L4CD_ADDRESSES[VL53L4CD_SENSOR_COUNT];
 
 // GPIO Port Definitions

@@ -41,5 +41,5 @@ float compute_correction();
 void set_motor_speed(uint8_t MOTOR_ID, float speed);
 
 // Used by main process to track progress on a motor action
-void motor_action_tracking(bool &motor_correction, int64_t total_left_encoder_count, int64_t total_right_encoder_count);
+void motor_action_tracking(bool &motor_correction);
 #endif

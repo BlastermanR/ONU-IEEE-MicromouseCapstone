@@ -60,14 +60,32 @@ int main()
     // Define Interrupts
     configure_i2c();
 
-    /*
+    //TEMP
+    gpio_put(S1_XSHUT, 1);
+    gpio_put(S2_XSHUT, 0);
+    gpio_put(S3_XSHUT, 0);
+
+    i2c_scan();
+    
+    uint16_t sensor_id;
+    uint8_t status1 = VL53L4CD_GetSensorId(0x29, &sensor_id);
+	if(status1 || (sensor_id != 0xEBAA))
+	{
+		printf("VL53L4CD not detected at requested address\n");
+	}
+    else
+    {
+        printf("VL53L4CD found???\n");
+    }
+
+    //i2c_scan();
+
     // Set VL53L4CD IR Sensor Addresses, Inititate Sensors
     if (!configure_ir_address() || !VL53L4CD_setup()) 
     {
         printf("CRITICAL FAILURE: Exiting Program\n");
         return -1;
     }
-    */
 
     // Print I2C Devices
     i2c_scan();
@@ -143,12 +161,14 @@ int main()
         // Update motor speed/rotations/corrections
         if (encoder_read_flag)
         {
+            int status = save_and_disable_interrupts();
             update_encoder_count(left_encoder_count, right_encoder_count);
             left_encoder_count_shared.write(left_encoder_count);
             right_encoder_count_shared.write(right_encoder_count);
             sleep_ms(1);
-            motor_action_tracking(motor_correct_flag, left_encoder_count, right_encoder_count); // Motor Logic
+            motor_action_tracking(motor_correct_flag); // Motor Logic
             encoder_read_flag = false;
+            restore_interrupts(status);
         }
         
         set_correction_timer(calculate_corrections.read());
