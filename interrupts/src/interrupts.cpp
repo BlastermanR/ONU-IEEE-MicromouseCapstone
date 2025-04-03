@@ -10,6 +10,7 @@ bool sw2_on_flag = false;
 bool sw3_on_flag = false;
 bool motor_correct_flag = false;
 bool encoder_read_flag = false;
+bool velocity_update_flag = false;
 
 // Timers
 struct repeating_timer correction_timer;
@@ -109,5 +110,11 @@ bool correction_irq_handler(struct repeating_timer *t)
 bool encoder_irq_handler(struct repeating_timer *t)
 {
     encoder_read_flag = true;
+    return true;
+}
+
+bool veloctiy_irq_handler(struct repeating_timer *t)
+{
+    velocity_update_flag = true;
     return true;
 }

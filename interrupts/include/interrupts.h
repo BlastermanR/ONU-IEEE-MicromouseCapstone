@@ -11,11 +11,6 @@
 #include <hardware/timer.h>
 #include <quadrature_encoder.h>
 
-// Global Declarations
-#define GYRO_TIMER_MS 10
-#define ENCODER_TIMER_MS 5
-#define CORRECTION_TIMER_MS 15
-
 // Flags
 extern bool ir_sensor_ready_flag_1;
 extern bool ir_sensor_ready_flag_2;
@@ -26,6 +21,7 @@ extern bool sw2_on_flag;
 extern bool sw3_on_flag;
 extern bool motor_correct_flag;
 extern bool encoder_read_flag;
+extern bool velocity_update_flag;
 
 // Timers
 extern struct repeating_timer correction_timer;
@@ -61,5 +57,9 @@ bool correction_irq_handler(struct repeating_timer *t);
 
 // Handle encoder reading
 bool encoder_irq_handler(struct repeating_timer *t);
+
+// Velocity Timer
+
+bool veloctiy_irq_handler(struct repeating_timer *t);
 
 #endif 

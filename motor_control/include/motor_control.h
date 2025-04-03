@@ -21,10 +21,8 @@
 #define SENSOR_CORRECTION_WEIGHT 0.8
 #define CORRECTION_DEADBAND 1.5
 
-// Correction PID coefficients
-#define Kp 1.0  // Proportional gain
-#define Ki 0.1  // Integral gain
-#define Kd 0.05 // Derivative gain
+// Acceleration
+#define ACCELERATION_STEP 5.0f  // mm/s per cycle
 
 // Implement PID for tracking correction needed
 // Needs to: 
@@ -39,6 +37,12 @@ float compute_correction();
 // MOTOR_ID --> motor to change
 // speed --> speed factor (-1 to 1)
 void set_motor_speed(uint8_t MOTOR_ID, float speed);
+
+// Update Velocity
+void update_velocity();
+
+// Calculates Updated Motor Speed
+float speed_pid();
 
 // Used by main process to track progress on a motor action
 void motor_action_tracking(bool &motor_correction);

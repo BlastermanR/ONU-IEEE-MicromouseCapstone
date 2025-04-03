@@ -4,8 +4,7 @@ void testing_process()
 {
     Robot robot = Robot();
     
-    left_motor_set_speed.write(0.1);
-    right_motor_set_speed.write(0.1);
+    desired_velocity_mms_shared.write(200); // 20 cm/s target
 
     bool run = false;
 
@@ -32,6 +31,7 @@ void testing_process()
         }
     
         printf("counts: %i and %i\n", left_encoder_count_shared.read(), right_encoder_count_shared.read());
+        printf("velocity = %f mm/s\n", target_velocity_mms_shared.read());
         sleep_ms(1000);
     }
  

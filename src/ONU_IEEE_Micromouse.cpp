@@ -151,6 +151,13 @@ int main()
             restore_interrupts(status);
         }
         
+        if (velocity_update_flag)
+        {
+            int status = save_and_disable_interrupts();
+            update_velocity();
+            restore_interrupts(status);
+        }
+
         set_correction_timer(calculate_corrections.read());
     }
 

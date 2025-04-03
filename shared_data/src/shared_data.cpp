@@ -18,7 +18,8 @@ SharedDataMutex<int32_t> right_encoder_rotation_demand(0);
 // Motor Control
 SharedDataMutex<bool> motor_action(false);
 SharedDataMutex<bool> calculate_corrections(false);
-SharedDataMutex<float> left_motor_set_speed(0.0);
-SharedDataMutex<float> right_motor_set_speed(0.0);
+SharedDataMutex<float> current_velocity_mms_shared(0);
+SharedDataMutex<float> target_velocity_mms_shared(0);
+SharedDataMutex<float> desired_velocity_mms_shared(0);
 SharedDataMutex<int32_t> left_encoder_count_shared(0);
 SharedDataMutex<int32_t> right_encoder_count_shared(0);

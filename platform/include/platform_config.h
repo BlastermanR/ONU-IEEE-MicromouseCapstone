@@ -19,6 +19,12 @@
 #define PWM_CLOCK_DIVIDER 4.0
 #define PWM_CLOCK_TOP 25000
 
+// Timer Deffs
+#define GYRO_TIMER_MS 10
+#define ENCODER_TIMER_MS 5
+#define CORRECTION_TIMER_MS 15
+#define VELOCITY_TIMER_MS 5
+
 // I2C Definitions
 #define I2C_PORT i2c0
 #define I2C_CLOCK 400000
